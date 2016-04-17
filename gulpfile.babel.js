@@ -58,7 +58,10 @@ const attribution = [
 const browserifyArgs = {
   debug: true,
   entries: folders.src + '/' + library.filename,
-  standalone: library.className
+  standalone: library.className,
+  transform: [
+	  'babelify'
+  ]
 }
 
 const watchifyArgs = assign(watchify.args, browserifyArgs)
@@ -69,10 +72,6 @@ const build = () => {
 	console.time('Bundling finished')
 
 	return bundler
-		.transform(babelify.configure({
-			presets: ['es2015'],
-			plugins: ['add-module-exports']
-		}))
 		.bundle()
 		.on('error', onError)
 		.on('end', () => console.timeEnd('Bundling finished'))

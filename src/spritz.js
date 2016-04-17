@@ -1,29 +1,105 @@
-export default class Spritz {
+import knot from 'knot.js'
 
-  spritz(target, options = {}) {
-    this.options = {
-		start: options.start || 0,
-        stop: options.stop || window.height,
-        steps: 8,
-        lines: options.lines || 1,
+export default (target, options = {}) => {
 
-        spriteWidth: 1024,
-        spriteHeight: 1024,
-        spriteFile: 'http://kwiksher.com/wp-content/uploads/2012/09/runningcat.png',
+	/**
+	 * Variables
+	 */
 
-        beforeRender: function(sprites) {},
-        afterRender: function(sprites) {},
-        beforeStart: function(sprites) {},
-        afterStop: function(sprites) {}
-    }
-  }
+	 let windowsHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
-  _uniqid() {
-	  return uniqid;
-  }
+	 const settings = {
+		 start: options.start || 0,
+		 stop: options.stop || windowsHeight,
+		 steps: options.steps,
+		 rows: options.rows || 1,
 
-  _generateCSS() {
+		 responsive: options.responsive || false,
+		 scroller: options.scroller || 'body',
 
-  }
+		 spriteWidth: options.spriteWidth,
+		 spriteHeight: options.spriteHeight,
+		 spritePath: options.spritePath,
+
+		 beforeRender: function() {},
+		 afterRender: function() {},
+		 beforeStart: function() {},
+		 afterStop: function() {}
+	 }
+
+	const run = [
+		_generateCSS
+	]
+
+
+	/**
+	* Expose public methods
+	* https://github.com/callmecavs/knot.js
+	*/
+
+	const instance = knot({
+		load: load,
+		unload: load,
+		destroy: destroy,
+		listen: listen,
+		mute: mute
+	})
+
+	return instance
+
+
+	/**
+	 * Private methods
+	 */
+
+	 // Run a serie of functions
+	function _runSeries(functions) {
+		functions.forEach(func => func())
+	}
+
+	// Return an uniqid
+	function _uniqid() {
+		return uniqid;
+	}
+
+	// Generate the CSS steps
+	function _generateCSS() {
+
+	}
+
+
+	/**
+	 * Public methods
+	 */
+
+	// Init the instance
+	function init() {
+		return instance.emit('pack')
+	}
+
+	 // Load the sprite image
+	function load() {
+
+	}
+
+	// Unload the sprite from browser memory
+	function unload() {
+
+	}
+
+	// Destroy completely the sprite and restore initial state
+	function destroy() {
+
+	}
+
+	// Listen for user scroll
+	function listen(scroller) {
+
+	}
+
+	// Stop listening for user scroll
+	function mute(scroller) {
+
+	}
 
 }
