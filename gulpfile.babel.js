@@ -58,7 +58,7 @@ const attribution = [
 const browserifyArgs = {
   debug: true,
   entries: folders.src + '/' + library.filename,
-  standalone: library.className,
+  standalone: library.class,
   transform: [
 	  'babelify'
   ]
@@ -78,8 +78,8 @@ const build = () => {
 		.pipe(source('spritz.min.js'))
 		.pipe(buffer())
 		.pipe(sourcemaps.init({ loadMaps: true }))
+		.pipe(uglify())
 		.pipe(header(attribution, { pkg: packageJSON }))
-		.pipe(uglify({ preserveComments: 'some' }))
 		.pipe(sourcemaps.write('./', { addComment: false }))
 		.pipe(gulp.dest(folders.dist))
 }

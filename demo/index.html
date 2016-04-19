@@ -17,12 +17,10 @@
     <script src="../dist/spritz.min.js"></script>
 
     <script>
-		Spritz.spritz('#demo-1', {
-			steps: 5,
-			spriteWidth: 1800,
-			spriteHeight: 1746,
-			spritePath: 'sprite.png'
-		});
+		document.addEventListener('DOMContentLoaded', function(event) {
+			var instance = Spritz();
+			instance.init();
+      	});
     </script>
 
 	<script src="https://cdn.jsdelivr.net/g/modernizr@2.8.3"></script>

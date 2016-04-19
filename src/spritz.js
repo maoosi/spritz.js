@@ -19,12 +19,7 @@ export default (target, options = {}) => {
 
 		spriteWidth: options.spriteWidth,
 		spriteHeight: options.spriteHeight,
-		spritePath: options.spritePath,
-
-		beforeRender: function() {},
-		afterRender: function() {},
-		beforeStart: function() {},
-		afterStop: function() {}
+		spritePath: options.spritePath
 	}
 
 	const run = [
@@ -38,6 +33,7 @@ export default (target, options = {}) => {
 	 */
 
 	const instance = knot({
+		init: init,
 		load: load,
 		unload: load,
 		destroy: destroy,
@@ -64,7 +60,7 @@ export default (target, options = {}) => {
 
 	// Generate the CSS steps
 	function _generateCSS() {
-
+		
 	}
 
 
@@ -79,12 +75,12 @@ export default (target, options = {}) => {
 
 	// Load the sprite image
 	function load() {
-		return instance.emit('load')
+		return instance.emit('loaded')
 	}
 
 	// Unload the sprite from browser memory
 	function unload() {
-		return instance.emit('unload')
+		return instance.emit('unloaded')
 	}
 
 	// Destroy completely the sprite and restore initial state
@@ -94,7 +90,7 @@ export default (target, options = {}) => {
 
 	// Listen for user scroll
 	function listen() {
-		return instance.emit('listen')
+		return instance.emit('scroll')
 	}
 
 	// Stop listening for user scroll
