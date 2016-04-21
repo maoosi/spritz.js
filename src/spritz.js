@@ -9,17 +9,12 @@ export default (target, options = {}) => {
 	let windowsHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
 	const settings = {
-		start: options.start || 0,
-		stop: options.stop || windowsHeight,
+		container: options.container || 'body'
 		steps: options.steps,
 		rows: options.rows || 1,
-
-		responsive: options.responsive || false,
-		scroller: options.scroller || 'body',
-
-		spriteWidth: options.spriteWidth,
-		spriteHeight: options.spriteHeight,
-		spritePath: options.spritePath
+		width: options.width,
+		height: options.height,
+		src: options.src
 	}
 
 	const run = [
@@ -71,6 +66,7 @@ export default (target, options = {}) => {
 	// Init the instance
 	function init() {
 		_generateCSS()
+		return instance.emit('init')
 	}
 
 	// Load the sprite image
@@ -89,13 +85,28 @@ export default (target, options = {}) => {
 	}
 
 	// Listen for user scroll
-	function listen() {
-		return instance.emit('scroll')
+	function listenScroll(from = 0, to = windowsHeight, scroller = 'body') {
+		return instance.emit('listenScroll')
+	}
+
+	// Return the current frame/step
+	function getStep(step) {
+		return instance.emit('stepChanged')
+	}
+
+	// Change the current frame/step (no animation)
+	function setStep(step = 0) {
+		return instance.emit('stepChanged')
+	}
+
+	// Update current frame/step (animated)
+	function goToStep(step, reverse = false, fps = 12) {
+		return instance.emit('play')
 	}
 
 	// Stop listening for user scroll
-	function mute() {
-		return instance.emit('mute')
+	function muteScroll() {
+		return instance.emit('muteScroll')
 	}
 
 }

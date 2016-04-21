@@ -9,17 +9,55 @@
     <title>spritz.js</title>
     <meta name="description" content="A small, modern, dependency-free sprites animation library.">
 
+    <style>
+        html, body {
+            min-height: 200vh;
+        }
+    </style>
+
 </head>
 <body>
 
+    <button id="load-bt">Load</button>
+    <button id="unload-bt">Unload</button>
+    
     <div id="demo-1"></div>
 
     <script src="../dist/spritz.min.js"></script>
 
     <script>
+        // When page is loaded
 		document.addEventListener('DOMContentLoaded', function(event) {
-			var instance = Spritz();
-			instance.init();
+
+            // Sprite declaration
+			var sprite = Spritz({
+                container: '#demo-1',
+                src: 'sprite.png',
+                steps: 5,
+                rows: 3,
+                width: 1800,
+                height: 1746
+            });
+
+            // Sprite initialization
+            sprite.init();
+
+            // On click load button
+            document.querySelector('#load-bt').addEventListener('click', function(event) {
+
+                // Sprite loading
+                sprite.load();
+
+            },false);
+
+            // On click load button
+            document.querySelector('#unload-bt').addEventListener('click', function(event) {
+
+                // Sprite loading
+                sprite.unload();
+
+            },false);
+
       	});
     </script>
 
