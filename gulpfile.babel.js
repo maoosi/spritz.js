@@ -3,6 +3,7 @@
 import packageJSON from './package.json'
 import path from 'path'
 
+import sync from 'browser-sync'
 import babelify from 'babelify'
 import browserify from 'browserify'
 import watchify from 'watchify'
@@ -82,13 +83,42 @@ const build = () => {
 		.pipe(header(attribution, { pkg: packageJSON }))
 		.pipe(sourcemaps.write('./', { addComment: false }))
 		.pipe(gulp.dest(folders.dist))
+		.pipe(sync.stream())
 }
 
 bundler.on('update', build)
 gulp.task('js', build)
 
 
+// SERVER
+
+const server = sync.create()
+
+const sendMaps = (req, res, next) => {
+	const filename = req.url.split('/').pop()
+	const extension = filename.split('.').pop()
+
+	if(extension === 'css' || extension === 'js') {
+		res.setHeader('X-SourceMap', '/' + filename + '.map')
+	}
+
+	return next()
+}
+
+const options = {
+	notify: false,
+	startPath: '/demo/',
+	server: {
+		baseDir: '.',
+		middleware: [
+	      sendMaps
+	    ]
+	}
+}
+
+gulp.task('server', () => sync(options))
+
+
 // WATCH
 
-gulp.watch(folders.src + '/**/*.js', ['js'])
-gulp.task('default', ['js'])
+gulp.task('default', ['js', 'server'])

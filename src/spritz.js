@@ -60,7 +60,7 @@ export default (target, options = {}) => {
 
 	// Generate the CSS steps
 	function _generateCSS() {
-		
+
 	}
 
 
