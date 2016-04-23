@@ -3,19 +3,30 @@ import knot from 'knot.js'
 export default (target, options = {}) => {
 
 	/**
-	 * Variables
+	 * Default settings
 	 */
 
-	let windowsHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-
 	const settings = {
-		container: options.container || 'body'
+		container: options.container || 'body',
 		steps: options.steps,
 		rows: options.rows || 1,
 		width: options.width,
 		height: options.height,
 		src: options.src
 	}
+
+
+	/**
+	 * Useful constants
+	 */
+
+	const windowsHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+	const uniqid = Symbol();
+
+
+	/**
+	 * Series of functions
+	 */
 
 	const run = [
 		_generateCSS
@@ -32,8 +43,11 @@ export default (target, options = {}) => {
 		load: load,
 		unload: load,
 		destroy: destroy,
-		listen: listen,
-		mute: mute
+		listenScroll: listenScroll,
+		muteScroll: muteScroll,
+		getStep: getStep,
+		setStep: setStep,
+		goToStep: goToStep
 	})
 
 	return instance
@@ -48,13 +62,30 @@ export default (target, options = {}) => {
 		functions.forEach(func => func())
 	}
 
-	// Return an uniqid
-	function _uniqid() {
-		return uniqid;
-	}
-
 	// Generate the CSS steps
 	function _generateCSS() {
+
+		console.log(uniqid);
+
+		let css =
+		`
+		.sprite {
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 0;
+			bottom: 0;
+			background:  url('http://bennet.org/images/codepen/ryu-sprite-demo.png') no-repeat 0 0%;
+			background-size: 100%;
+			animation: sprite 3.5s steps(45) infinite;
+		}
+
+		@keyframes sprite {
+			from { background-position: 0 0%; }
+			to { background-position: 0 100%; }
+		}
+		`
+
 
 	}
 
@@ -89,6 +120,11 @@ export default (target, options = {}) => {
 		return instance.emit('listenScroll')
 	}
 
+	// Stop listening for user scroll
+	function muteScroll() {
+		return instance.emit('muteScroll')
+	}
+
 	// Return the current frame/step
 	function getStep(step) {
 		return instance.emit('stepChanged')
@@ -100,13 +136,8 @@ export default (target, options = {}) => {
 	}
 
 	// Update current frame/step (animated)
-	function goToStep(step, reverse = false, fps = 12) {
+	function goToStep(step, fps = 12) {
 		return instance.emit('play')
-	}
-
-	// Stop listening for user scroll
-	function muteScroll() {
-		return instance.emit('muteScroll')
 	}
 
 }
