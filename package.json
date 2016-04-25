@@ -40,6 +40,7 @@
     "watchify": "^3.7.0"
   },
   "dependencies": {
-    "knot.js": "^1.0.1"
+    "knot.js": "^1.0.1",
+    "shortid": "^2.2.6"
   }
 }

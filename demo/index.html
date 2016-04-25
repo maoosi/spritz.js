@@ -13,14 +13,24 @@
         html, body {
             min-height: 200vh;
         }
+
+		#demo-1 {
+			position: relative;
+			width: 100%;
+			max-width: 800px;
+			margin: auto;
+		}
     </style>
 
 </head>
 <body>
 
-    <button id="load-bt">Load</button>
-    <button id="unload-bt">Unload</button>
-    
+	<div>
+	    <button id="load">Load</button>
+	    <button id="destroy">Destroy</button>
+		<input id="setStep" type="range" min="1" max="5" value="1" step="1" />
+	</div>
+
     <div id="demo-1"></div>
 
     <script src="../dist/spritz.min.js"></script>
@@ -32,6 +42,7 @@
             // Sprite declaration
 			var sprite = Spritz({
                 container: '#demo-1',
+				responsive: false,
                 src: 'sprite.png',
                 steps: 5,
                 rows: 3,
@@ -39,24 +50,28 @@
                 height: 1746
             });
 
-            // Sprite initialization
-            sprite.init();
+			// Preloading sprite
+            sprite.load();
+
+			// Display sprite
+			sprite.on('load', function() {
+				this.display()
+			})
 
             // On click load button
-            document.querySelector('#load-bt').addEventListener('click', function(event) {
-
-                // Sprite loading
+            document.querySelector('#load').addEventListener('click', function(event) {
                 sprite.load();
+            }, false);
 
-            },false);
+            // On click destroy button
+            document.querySelector('#destroy').addEventListener('click', function(event) {
+                sprite.destroy();
+            }, false);
 
-            // On click load button
-            document.querySelector('#unload-bt').addEventListener('click', function(event) {
-
-                // Sprite loading
-                sprite.unload();
-
-            },false);
+			// On change slider value
+            document.querySelector('#setStep').addEventListener('change', function(event) {
+                sprite.setStep(event.target.value);
+            }, false);
 
       	});
     </script>
