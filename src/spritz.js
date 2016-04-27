@@ -34,9 +34,13 @@ export default (options = {}) => {
 	let imageNode = null
 	let styleNode = null
 	let htmlNode  = null
-	let spriteColumns = null
-	let extraCSS = null
 	let backgroundSize = null
+	let sprite = {
+		columns: null,
+		padding: null,
+		width: null,
+		height: null
+	}
 
 
 	/**
@@ -65,8 +69,6 @@ export default (options = {}) => {
 		load: load,
 		display: display,
 		destroy: destroy,
-		listenScroll: listenScroll,
-		muteScroll: muteScroll,
 		getStep: getStep,
 		setStep: setStep,
 		goToStep: goToStep
@@ -90,53 +92,32 @@ export default (options = {}) => {
 	function _calculations() {
 
 		// how many columns ?
-		spriteColumns = Math.ceil(settings.steps / settings.rows)
+		sprite.columns = Math.ceil(settings.steps / settings.rows)
 
 		// what's background sizes
-		backgroundSize = 100 * spriteColumns
+		backgroundSize = 100 * sprite.columns
 
 		// fixed width calculation
-		let spriteWidth = settings.width / spriteColumns
-		spriteWidth = (Math.round((spriteWidth * 1000)/10)/100).toFixed(2)
+		sprite.width = settings.width / sprite.columns
+		sprite.width = (Math.round((sprite.width * 1000)/10)/100).toFixed(2)
 
 		// fixed height calculation
-		let spriteHeight = settings.height / settings.rows
-		spriteHeight = (Math.round((spriteHeight * 1000)/10)/100).toFixed(2)
+		sprite.height = settings.height / settings.rows
+		sprite.height = (Math.round((sprite.height * 1000)/10)/100).toFixed(2)
 
-		// width = 100% & relative height
-		if (settings.responsive === true) {
-			let spritePadding = ((spriteHeight*100) * 100 / (spriteWidth*100))
-			extraCSS =
-				`
-				#sprite-${uniqid} {
-					position: relative;
-					width: 100%;
-				}
+		// sprite padding used for responsive
+		sprite.padding = ((sprite.height*100) * 100 / (sprite.width*100))
 
-				#sprite-${uniqid}::after {
-					content: '';
-  					display: block;
-  					padding-bottom: ${spritePadding}%;
-				}
-				`
-		// fixed sizes
-		} else {
-			extraCSS =
-				`
-				#sprite-${uniqid} {
-					position: absolute;
-					width: ${spriteWidth}px;
-					height: ${spriteHeight}px;
-				}
-				`
-		}
 	}
 
 	// Generate the DOM
 	function _generateDOM() {
 		if (htmlNode === null) {
 			htmlNode = document.createElement('div')
-			document.querySelector(settings.container).appendChild(htmlNode).setAttribute('id', 'sprite-'+ uniqid +'')
+			document
+				.querySelector(settings.container)
+				.appendChild(htmlNode)
+				.setAttribute('id', 'sprite-'+ uniqid +'')
 		}
 	}
 
@@ -144,32 +125,46 @@ export default (options = {}) => {
 	function _generateCSS() {
 		if (styleNode === null && imageNode != null) {
 
+			let spriteBehavior = ``
+			let css = ``
+
+			// if responsive option, width = 100% & height = proportional
+			if (settings.responsive === true) {
+				spriteBehavior =
+					`
+					position: relative;
+					width: 100%;
+					`
+				css +=
+					`
+					#sprite-${uniqid}::after {
+						content: '';
+						display: block;
+						padding-bottom: ${sprite.padding}%;
+					}
+					`
+			// fixed sizes
+			} else {
+				spriteBehavior =
+					`
+					position: absolute;
+					width: ${sprite.width}px;
+					height: ${sprite.height}px;
+					`
+			}
+
 			// generate the css
-			let css =
+			css +=
 				`
 				#sprite-${uniqid} {
-					left: 0; right: 0; top: 0; bottom: 0;
+					left: 0; right: 0;
+					top: 0; bottom: 0;
 					background: url('${imageNode.src}') no-repeat 0 0%;
 					background-size: ${backgroundSize}%;
-					animation: sprite-anim-${uniqid} 4s steps(${spriteColumns}) infinite;
+					background-position: 0 0;
+					${spriteBehavior}
 				}
-
-				${extraCSS}
 				`
-
-			//keyframes
-			// css += `@keyframes sprite-anim-${uniqid} {`
-			// css += `0% { background-position: 0 0; }`
-			// for (let i = 1; i <= settings.steps-1; i++) {
-			// 	let currPrct = (100 / (settings.steps-1)) * i
-			// 	let currPosX = (i % spriteColumns) * (backgroundSize / spriteColumns)
-			// 	let currPosY = (i % settings.rows) * (backgroundSize / settings.rows)
-			// 	css +=
-			// 		`
-			// 		${currPrct}% { background-position: ${currPosX}% ${currPosY}%; }
-			// 		`
-			// }
-			// css += `}`
 
 			// create style node
 			styleNode = document.createElement('style')
@@ -219,33 +214,35 @@ export default (options = {}) => {
 		}
 	}
 
-	// Listen for user scroll
-	function listenScroll(from = 0, to = windowsHeight, scroller = 'body') {
-		return instance.emit('listenScroll')
-	}
-
-	// Stop listening for user scroll
-	function muteScroll() {
-		return instance.emit('muteScroll')
-	}
-
 	// Return the current frame/step
 	function getStep(step) {
 
 	}
 
 	// Change the current frame/step (no animation)
-	function setStep(step = 0) {
-		// 	let currPrct = (100 / (settings.steps-1)) * i
-		// 	let currPosX = (i % spriteColumns) * (backgroundSize / spriteColumns)
-		// 	let currPosY = (i % settings.rows) * (backgroundSize / settings.rows)
-		console.log(step)
-		return instance.emit('stepChanged')
+	function setStep(step = 1) {
+		if (styleNode != null && htmlNode != null && imageNode != null) {
+
+			// Step & rows values, starting from 0
+			let stepZero = step - 1
+			let rowsZero = settings.rows - 1
+
+			// Calculate the new position
+			let positionX = (backgroundSize / sprite.columns) * (stepZero % sprite.columns)
+			let positionY = (100 / rowsZero ) * Math.floor( stepZero / sprite.columns )
+
+			// Apply position with css
+			htmlNode.style.backgroundPosition = ''+ positionX +'% '+ positionY +'%'
+
+			// Emit changed
+			return instance.emit('changed')
+
+		}
 	}
 
 	// Update current frame/step (animated)
 	function goToStep(step, fps = 12) {
-		return instance.emit('play')
+
 	}
 
 }
