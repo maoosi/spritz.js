@@ -221,14 +221,17 @@ export default (options = {}) => {
 
 	// Change the current frame/step (no animation)
 	function setStep(step = 1) {
+		console.log(step)
+
 		if (styleNode != null && htmlNode != null && imageNode != null) {
 
 			// Step & rows values, starting from 0
 			let stepZero = step - 1
 			let rowsZero = settings.rows - 1
+			let columnsZero = sprite.columns - 1
 
 			// Calculate the new position
-			let positionX = (backgroundSize / sprite.columns) * (stepZero % sprite.columns)
+			let positionX = (100 / columnsZero) * (stepZero % sprite.columns)
 			let positionY = (100 / rowsZero ) * Math.floor( stepZero / sprite.columns )
 
 			// Apply position with css

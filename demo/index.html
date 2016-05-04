@@ -28,7 +28,7 @@
 	<div>
 	    <button id="load">Load</button>
 	    <button id="destroy">Destroy</button>
-		<input id="setStep" type="range" min="1" max="5" value="1" step="1" />
+		<input id="setStep" type="range" min="1" max="16" value="1" step="1" />
 	</div>
 
     <div id="demo-1"></div>
@@ -43,11 +43,11 @@
 			var sprite = Spritz({
                 container: '#demo-1',
 				responsive: false,
-                src: 'sprite.png',
-                steps: 5,
-                rows: 3,
-                width: 1800,
-                height: 1746
+                src: 'sprite-cartoon.png',
+                steps: 16,
+                rows: 4,
+                width: 756,
+                height: 920
             });
 
 			// Preloading sprite
