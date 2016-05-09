@@ -12,6 +12,7 @@ import buffer from 'vinyl-buffer'
 import source from 'vinyl-source-stream'
 import gulp from 'gulp'
 
+import eslint from 'gulp-eslint'
 import autoprefixer from 'gulp-autoprefixer'
 import changed from 'gulp-changed'
 import sourcemaps from 'gulp-sourcemaps'
@@ -25,7 +26,8 @@ import gutil from 'gulp-util'
 
 const folders = {
 	src: './src',
-	dist: './dist'
+	dist: './dist',
+	demo: './demo'
 }
 
 const library = {
@@ -54,7 +56,16 @@ const attribution = [
 ].join('\n')
 
 
-// JS
+// LINT
+
+gulp.task('lint', () => {
+	return gulp.src(folders.src + '/**/*')
+		.pipe(eslint())
+		.pipe(eslint.format())
+})
+
+
+// BUNDLE
 
 const browserifyArgs = {
   debug: true,
@@ -87,12 +98,13 @@ const build = () => {
 }
 
 bundler.on('update', build)
-gulp.task('js', build)
+gulp.task('js', ['lint'], build)
 
 
 // SERVER
 
 const server = sync.create()
+const reload = sync.reload
 
 const sendMaps = (req, res, next) => {
 	const filename = req.url.split('/').pop()
@@ -113,12 +125,23 @@ const options = {
 		middleware: [
 	      sendMaps
 	    ]
-	}
+	},
+	reloadDelay: 500,
+    watchOptions: {
+        ignored: '*.map'
+    }
 }
 
-gulp.task('server', () => sync(options))
+gulp.task('server', () => setTimeout(function(){ sync(options) }, 1000))
 
 
 // WATCH
 
-gulp.task('default', ['js', 'server'])
+gulp.task('watch', () => {
+    gulp.watch([folders.src + '/**/*', folders.demo + '/**/*'], ['js', reload])
+})
+
+
+// DEFAULT TASK
+
+gulp.task('default', ['js', 'server', 'watch'])

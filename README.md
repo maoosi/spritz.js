@@ -4,11 +4,8 @@
 A small, modern, dependency-free sprites animation library. Compatible with ScrollMagic.io
 
 ## TODO
-* [ ] Library v1.0.0 (state vars / destroy / setProgress / goToStep / getStep / nextStep / prevStep)
-* [ ] Better server sync
-* [ ] Eslint
+* [ ] Library v1.0.0 (setProgress / goToStep / nextStep / prevStep)
 * [ ] Complete demo page
 * [ ] Documentation
 * [ ] NPM publish
 * [ ] JSDelivr
-* [ ] Canvas option

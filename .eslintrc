@@ -1,0 +1,15 @@
+{
+    "rules": {
+        "indent": ["error", 4]
+    },
+    "env": {
+        "browser": true,
+        "es6": true
+    },
+    "parserOptions": {,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "experimentalObjectRestSpread": true
+        }
+    }
+}

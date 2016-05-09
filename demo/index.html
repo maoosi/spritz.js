@@ -27,8 +27,9 @@
 
 	<div>
 	    <button id="load">Load</button>
+	    <button id="init">Init</button>
 	    <button id="destroy">Destroy</button>
-		<input id="setStep" type="range" min="1" max="16" value="1" step="1" />
+		<input id="setStep" type="range" min="1" max="30" value="1" step="1" />
 	</div>
 
     <div id="demo-1"></div>
@@ -43,11 +44,12 @@
 			var sprite = Spritz({
                 container: '#demo-1',
 				responsive: false,
-                src: 'sprite-cartoon.png',
-                steps: 16,
-                rows: 4,
-                width: 756,
-                height: 920
+                src: 'sprite-kangaroo.png',
+                steps: 30,
+                flip: true,
+                rows: 5,
+                width: 1920,
+                height: 1600
             });
 
 			// Preloading sprite
@@ -61,6 +63,11 @@
             // On click load button
             document.querySelector('#load').addEventListener('click', function(event) {
                 sprite.load();
+            }, false);
+
+            // On click init button
+            document.querySelector('#init').addEventListener('click', function(event) {
+                sprite.init();
             }, false);
 
             // On click destroy button
