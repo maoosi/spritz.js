@@ -10,15 +10,19 @@ export default (options = {}) => {
 
     const settings = {
         container: options.container || 'body',
-        responsive: options.responsive || false,
+
         steps: options.steps,
-        startAt: options.startAt || 1,
+        initial: options.initial || 1,
+
         rows: options.rows || 1,
         width: options.width,
         height: options.height,
         flip: options.flip || false,
+        responsive: options.responsive || false,
+
         src: options.src,
-        hdReplacment: options.hdReplacment || {}
+        mask: options.mask || false,
+        proxy: options.proxy || {}
     }
 
 
@@ -51,16 +55,16 @@ export default (options = {}) => {
     * Series of functions
     */
 
-    const generate = [
+    const __create = [
         _calculations,
         _generateDOM,
         _generateCSS,
         _defaultStep
     ]
 
-    const run = [
+    const __init = [
         load,
-        display
+        create
     ]
 
 
@@ -72,11 +76,13 @@ export default (options = {}) => {
     const instance = knot({
         init: init,
         load: load,
-        display: display,
+        create: create,
         destroy: destroy,
         getStep: getStep,
         setStep: setStep,
-        goToStep: goToStep
+        goToStep: goToStep,
+        prevStep: prevStep,
+        nextStep: nextStep
     })
 
     return instance
@@ -128,8 +134,8 @@ export default (options = {}) => {
 
     // Set default step
     function _defaultStep() {
-        if (settings.startAt > 1) {
-            setStep(settings.startAt)
+        if (settings.initial > 1) {
+            setStep(settings.initial)
         }
     }
 
@@ -209,15 +215,15 @@ export default (options = {}) => {
 
     // Init the instance
     function init() {
-        _runSeries(run).then(function() {
+        _runSeries(__init).then(function() {
             return instance.emit('init')
         })
     }
 
-    // Display the sprite
-    function display() {
-        _runSeries(generate).then(function() {
-            return instance.emit('display')
+    // Create the sprite structure
+    function create() {
+        _runSeries(__create).then(function() {
+            return instance.emit('create')
         })
     }
 
@@ -265,9 +271,26 @@ export default (options = {}) => {
             currentStep = step
 
             // Emit changed
-            return instance.emit('changed')
+            return instance.emit('change')
 
         }
+    }
+
+    // Go to the next step
+    function nextStep() {
+        let nextStep = currentStep < settings.steps ? currentStep + 1 : 1
+        return setStep(nextStep)
+    }
+
+    // Go to the previous step
+    function prevStep() {
+        let prevStep = currentStep > 1 ? currentStep - 1 : settings.step
+        return setStep(prevStep)
+    }
+
+    // Set a progress value: 0 = first step / 1 = last step
+    function setProgress(progress) {
+        // TODO
     }
 
     // Update current frame/step (animated)
