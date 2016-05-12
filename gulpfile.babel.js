@@ -59,7 +59,7 @@ const attribution = [
 // LINT
 
 gulp.task('lint', () => {
-	return gulp.src(folders.src + '/**/*')
+	return gulp.src(folders.src + '/**/*.js')
 		.pipe(eslint())
 		.pipe(eslint.format())
 })

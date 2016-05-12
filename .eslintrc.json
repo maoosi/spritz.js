@@ -1,0 +1,14 @@
+{
+    "extends": "standard",
+    "plugins": [
+        "standard"
+    ],
+    "rules": {
+        "indent": ["error", 4],
+        "no-multiple-empty-lines": ["error", {"max": 2}]
+    },
+    "env": {
+        "browser": true,
+        "es6": true
+    }
+}

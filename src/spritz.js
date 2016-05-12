@@ -3,7 +3,6 @@ import shortid from 'shortid'
 
 
 export default (options = {}) => {
-
     /**
     * Default settings
     */
@@ -31,7 +30,7 @@ export default (options = {}) => {
     * Useful constants
     */
 
-    const windowsHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
+    // const windowsHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
     const uniqid = shortid.generate()
 
 
@@ -41,7 +40,7 @@ export default (options = {}) => {
 
     let imageNode = null
     let styleNode = null
-    let htmlNode  = null
+    let htmlNode = null
     let svgNode = null
     let backgroundSize = null
     let sprite = {
@@ -86,6 +85,7 @@ export default (options = {}) => {
         goToStep: goToStep,
         prevStep: prevStep,
         nextStep: nextStep,
+        isMaskSupported: isMaskSupported,
         setProgress: setProgress
     })
 
@@ -97,15 +97,14 @@ export default (options = {}) => {
     */
 
     // Run a serie of functions
-    function _runSeries(functions) {
-        return new Promise(function(resolve, reject) {
-            resolve( functions.forEach(func => func()) )
+    function _runSeries (functions) {
+        return new Promise(function (resolve, reject) {
+            resolve(functions.forEach(func => func()))
         })
     }
 
     // Sprite calculations
-    function _calculations() {
-
+    function _calculations () {
         // how many columns ?
         sprite.columns = Math.ceil(settings.steps / settings.rows)
 
@@ -114,30 +113,29 @@ export default (options = {}) => {
 
         // fixed width calculation
         sprite.width = settings.width / sprite.columns
-        sprite.width = (Math.round((sprite.width * 1000)/10)/100).toFixed(2)
+        sprite.width = (Math.round((sprite.width * 1000) / 10) / 100).toFixed(2)
 
         // fixed height calculation
         sprite.height = settings.height / settings.rows
-        sprite.height = (Math.round((sprite.height * 1000)/10)/100).toFixed(2)
+        sprite.height = (Math.round((sprite.height * 1000) / 10) / 100).toFixed(2)
 
         // sprite padding used for responsive
-        sprite.padding = ((sprite.height*100) * 100 / (sprite.width*100))
-
+        sprite.padding = ((sprite.height * 100) * 100 / (sprite.width * 100))
     }
 
     // Generate the DOM
-    function _generateDOM() {
+    function _generateDOM () {
         if (htmlNode === null) {
             htmlNode = document.createElement('div')
             document
                 .querySelector(settings.container)
                 .appendChild(htmlNode)
-                .setAttribute('id', 'spritz-'+ uniqid +'')
+                .setAttribute('id', 'spritz-' + uniqid + '')
         }
     }
 
     // Generate the JPG/PNG mask using SVG
-    function _generateMask() {
+    function _generateMask () {
         if (_canUseSVG() && settings.mask !== false && svgNode === null) {
             let svgMask =
             `
@@ -152,33 +150,32 @@ export default (options = {}) => {
             `
 
             document
-                .querySelector('#spritz-'+ uniqid +'')
+                .querySelector('#spritz-' + uniqid + '')
                 .innerHTML = svgMask
 
-            svgNode = document.querySelector('#spritz-svg-'+ uniqid +'')
+            svgNode = document.querySelector('#spritz-svg-' + uniqid + '')
         }
     }
 
     // Return true if SVG Mask can be used by the browser
-    function _canUseSVG() {
+    function _canUseSVG () {
         // Return true if SVG support enabled (work for IE8+)
-        return !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg','svg').createSVGRect)
+        return !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg', 'svg').createSVGRect)
     }
 
     // Set default step
-    function _defaultStep() {
+    function _defaultStep () {
         if (settings.initial > 1) {
             setStep(settings.initial)
         }
     }
 
     // Generate the CSS
-    function _generateCSS() {
+    function _generateCSS () {
         if (styleNode === null && imageNode != null) {
-
-            let spriteBehavior = ``
-            let spriteFallback = ``
-            let css = ``
+            let spriteBehavior = ''
+            let spriteFallback = ''
+            let css = ''
 
             // if responsive option, width = 100% & height = proportional
             if (settings.responsive === true) {
@@ -246,7 +243,6 @@ export default (options = {}) => {
 
             // append style element to the head
             document.head.appendChild(styleNode)
-
         }
     }
 
@@ -256,22 +252,22 @@ export default (options = {}) => {
     */
 
     // Init the instance
-    function init(initial = null) {
+    function init (initial = null) {
         if (initial !== null) settings.initial = initial
-        _runSeries(__init).then(function() {
+        _runSeries(__init).then(function () {
             return instance.emit('init')
         })
     }
 
     // Create the sprite structure
-    function build() {
-        _runSeries(__build).then(function() {
+    function build () {
+        _runSeries(__build).then(function () {
             return instance.emit('build')
         })
     }
 
     // Destroy completely the sprite and restore initial state
-    function destroy() {
+    function destroy () {
         styleNode.parentNode.removeChild(styleNode)
         htmlNode.parentNode.removeChild(htmlNode)
         imageNode = htmlNode = styleNode = svgNode = null
@@ -279,10 +275,10 @@ export default (options = {}) => {
     }
 
     // Load the sprite image
-    function load() {
+    function load () {
         if (imageNode === null) {
             imageNode = new Image()
-            imageNode.onload = function() {
+            imageNode.onload = function () {
                 return instance.emit('load')
             }
             imageNode.src = settings.src
@@ -290,19 +286,28 @@ export default (options = {}) => {
     }
 
     // Return true if SVG Masking is supported
-    function isMaskSupported() {
+    function isMaskSupported () {
         return _canUseSVG
     }
 
     // Return the current frame/step
-    function getStep() {
+    function getStep () {
         return currentStep
     }
 
-    // Change the current frame/step (no animation)
-    function setStep(step = 1) {
-        if (styleNode != null && htmlNode != null && imageNode != null) {
+    // Replace the current step by it's HD replacement if it exists
+    function _proxy (step) {
+        if (typeof settings.proxy[step] === undefined) {
+            return
+        }
 
+        // let proxy = settings.proxy[step]
+        // TODO
+    }
+
+    // Change the current frame/step (no animation)
+    function setStep (step = 1) {
+        if (styleNode != null && htmlNode != null && imageNode != null) {
             // Step & rows values, starting from 0
             let stepZero = step - 1
             let rowsZero = settings.rows - 1
@@ -316,43 +321,43 @@ export default (options = {}) => {
             if (svgNode !== null) {
                 positionX = (positionX * columnsZero / 100) * sprite.width
                 positionY = (positionY * rowsZero / 100) * sprite.height
-
-                svgNode.setAttribute('viewBox', ''+ positionX +' '+ positionY +' '+ sprite.width +' '+ sprite.height +' ')
+                svgNode.setAttribute('viewBox', '' + positionX + ' ' + positionY + ' ' + sprite.width + ' ' + sprite.height + ' ')
             } else {
-                htmlNode.style.backgroundPosition = ''+ positionX +'% '+ positionY +'%'
+                htmlNode.style.backgroundPosition = '' + positionX + '% ' + positionY + '%'
             }
 
             // Save step
             currentStep = step
 
+            // Fire proxy replacement
+            _proxy(step)
+
             // Emit changed
             return instance.emit('change')
-
         }
     }
 
     // Go to the next step
-    function nextStep() {
+    function nextStep () {
         let nextStep = currentStep < settings.steps ? currentStep + 1 : 1
         return setStep(nextStep)
     }
 
     // Go to the previous step
-    function prevStep() {
+    function prevStep () {
         let prevStep = currentStep > 1 ? currentStep - 1 : settings.step
         return setStep(prevStep)
     }
 
     // Set a progress value: 0 = first step / 1 = last step
-    function setProgress(progressValue) {
+    function setProgress (progressValue) {
         let stepEquiv = Math.round(progressValue * 100 * settings.steps / 100)
         if (stepEquiv === 0) stepEquiv++
         return setStep(stepEquiv)
     }
 
     // Update current frame/step (animated)
-    function goToStep(step, fps = 12, easing = 'ease') {
+    function goToStep (step, fps = 12, easing = 'ease') {
         // TODO
     }
-
 }
