@@ -11,14 +11,18 @@
 
     <style>
         html, body {
-            min-height: 200vh;
+            /* min-height: 200vh; */
+            background-color: #96a3ac;
+            background-color: #D4DADE;
         }
 
-		#demo-1 {
-			position: relative;
-			width: 100%;
-			max-width: 800px;
-			margin: auto;
+		#sprite-1 {
+			position: absolute;
+			width: 1294px;
+            height: 774px;
+			top: 50%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-50%);
 		}
     </style>
 
@@ -28,10 +32,10 @@
 	<div>
 	    <button id="init">Init</button>
 	    <button id="destroy">Destroy</button>
-		<input id="setStep" type="range" min="1" max="30" value="1" step="1" />
+		<input id="setStep" type="range" min="1" max="36" value="1" step="1" />
 	</div>
 
-    <div id="demo-1"></div>
+    <div id="sprite-1"></div>
 
     <script src="../dist/spritz.min.js"></script>
 
@@ -41,14 +45,18 @@
 
             // Sprite declaration
 			var sprite = Spritz({
-                container: '#demo-1',
-				responsive: false,
-                src: 'sprite-kangaroo.png',
-                steps: 30,
-                flip: true,
-                rows: 5,
-                width: 1920,
-                height: 1600
+                container: '#sprite-1',
+
+                steps: 18,
+                rows: 4,
+                width: 6470,
+                height: 3096,
+
+                flip: false,
+                responsive: false,
+
+                src: 'sprites/JPG-quality30-scale100.jpg',
+                mask: 'sprites/PNG-8bits-scale100.png'
             });
 
 			// Preloading sprite
@@ -56,7 +64,7 @@
 
 			// Display sprite
 			sprite.on('load', function() {
-				this.create()
+				this.build()
 			})
 
             // On click init button
@@ -71,7 +79,8 @@
 
 			// On change slider value
             document.querySelector('#setStep').addEventListener('input', function(event) {
-                sprite.setStep(event.target.value);
+                var value = event.target.value % 18 + 1
+                sprite.setStep(value);
             }, false);
 
       	});
