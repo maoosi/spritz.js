@@ -22,7 +22,7 @@ export default (options = {}) => {
         responsive: options.responsive || false,
 
         src: options.src,
-        mask: options.mask || false, // TODO
+        mask: options.mask || false,
         proxy: options.proxy || {} // TODO
     }
 
@@ -138,7 +138,7 @@ export default (options = {}) => {
 
     // Generate the JPG/PNG mask using SVG
     function _generateMask() {
-        if (_canUseSVG() && svgNode === null) {
+        if (_canUseSVG() && settings.mask !== false && svgNode === null) {
             let svgMask =
             `
             <svg id="spritz-svg-${uniqid}" preserveAspectRatio="xMinYMin" width="100%" height="100%" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${sprite.width} ${sprite.height}">
@@ -161,9 +161,6 @@ export default (options = {}) => {
 
     // Return true if SVG Mask can be used by the browser
     function _canUseSVG() {
-        if (settings.mask === false)
-            return false
-
         // Return true if SVG support enabled (work for IE8+)
         return !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg','svg').createSVGRect)
     }
@@ -259,7 +256,8 @@ export default (options = {}) => {
     */
 
     // Init the instance
-    function init() {
+    function init(initial = null) {
+        if (initial !== null) settings.initial = initial
         _runSeries(__init).then(function() {
             return instance.emit('init')
         })
@@ -276,7 +274,7 @@ export default (options = {}) => {
     function destroy() {
         styleNode.parentNode.removeChild(styleNode)
         htmlNode.parentNode.removeChild(htmlNode)
-        imageNode = htmlNode = styleNode = null
+        imageNode = htmlNode = styleNode = svgNode = null
         return instance.emit('destroy')
     }
 
@@ -289,6 +287,11 @@ export default (options = {}) => {
             }
             imageNode.src = settings.src
         }
+    }
+
+    // Return true if SVG Masking is supported
+    function isMaskSupported() {
+        return _canUseSVG
     }
 
     // Return the current frame/step
@@ -307,16 +310,12 @@ export default (options = {}) => {
 
             // Calculate the new position
             let positionX = (100 / columnsZero) * (stepZero % sprite.columns)
-            let positionY = (100 / rowsZero ) * Math.floor( stepZero / sprite.columns )
+            let positionY = (100 / rowsZero) * Math.floor(stepZero / sprite.columns)
 
             // Set the new sprite position
             if (svgNode !== null) {
-                console.log(positionX * 100 / settings.rows)
-
-                positionX = sprite.width / sprite.columns * (positionX / 100)
-                positionY = positionY * 100 / columnsZero
-
-                // TODO
+                positionX = (positionX * columnsZero / 100) * sprite.width
+                positionY = (positionY * rowsZero / 100) * sprite.height
 
                 svgNode.setAttribute('viewBox', ''+ positionX +' '+ positionY +' '+ sprite.width +' '+ sprite.height +' ')
             } else {

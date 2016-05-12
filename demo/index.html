@@ -13,23 +13,26 @@
         html, body {
             /* min-height: 200vh; */
             background-color: #96a3ac;
-            background-color: #D4DADE;
+            /* background-color: #D4DADE; */
+        }
+
+        .controls {
+            position: fixed;
+            z-index: 9999;
         }
 
 		#sprite-1 {
-			position: absolute;
-			width: 1294px;
-            height: 774px;
-			top: 50%;
-            left: 50%;
-            transform: translateX(-50%) translateY(-50%);
+            position: relative;
+ -			width: 100%;
+ -			max-width: 800px;
+ -			margin: auto;
 		}
     </style>
 
 </head>
 <body>
 
-	<div>
+	<div class="controls">
 	    <button id="init">Init</button>
 	    <button id="destroy">Destroy</button>
 		<input id="setStep" type="range" min="1" max="36" value="1" step="1" />
@@ -69,7 +72,7 @@
 
             // On click init button
             document.querySelector('#init').addEventListener('click', function(event) {
-                sprite.init();
+                sprite.init(document.querySelector('#setStep').value);
             }, false);
 
             // On click destroy button
@@ -79,7 +82,7 @@
 
 			// On change slider value
             document.querySelector('#setStep').addEventListener('input', function(event) {
-                var value = event.target.value % 18 + 1
+                var value = ((event.target.value - 1) % 18) + 1
                 sprite.setStep(value);
             }, false);
 
