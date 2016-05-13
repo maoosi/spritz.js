@@ -22,7 +22,7 @@ export default (options = {}) => {
 
         src: options.src,
         mask: options.mask || false,
-        proxy: options.proxy || {} // TODO
+        proxy: options.proxy || false
     }
 
 
@@ -42,6 +42,9 @@ export default (options = {}) => {
     let styleNode = null
     let htmlNode = null
     let svgNode = null
+    let proxyNode = null
+    let proxyImagesList = []
+    let proxyTimeout = null
     let backgroundSize = null
     let sprite = {
         columns: null,
@@ -165,9 +168,7 @@ export default (options = {}) => {
 
     // Set default step
     function _defaultStep () {
-        if (settings.initial > 1) {
-            setStep(settings.initial)
-        }
+        setStep(settings.initial)
     }
 
     // Generate the CSS
@@ -206,9 +207,10 @@ export default (options = {}) => {
             if (settings.flip === true) {
                 spriteBehavior +=
                 `
-                -moz-transform: scaleX(-1);
-                -o-transform: scaleX(-1);
                 -webkit-transform: scaleX(-1);
+                -moz-transform: scaleX(-1);
+                -ms-transform: scaleX(-1);
+                -o-transform: scaleX(-1);
                 transform: scaleX(-1);
                 filter: FlipH;
                 -ms-filter: 'FlipH';
@@ -225,12 +227,46 @@ export default (options = {}) => {
                 `
             }
 
+            // if there is proxy images
+            if (settings.proxy !== false) {
+                css +=
+                `
+                #spritz-proxy-${uniqid} {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
+                    opacity: 0;
+                    background-repeat: no-repeat;
+                    background-size: 100%;
+                    background-position: 0 0;
+                }
+
+                #spritz-${uniqid}.proxy-visible #spritz-svg-${uniqid} {
+                    transition: opacity 0s linear .4s;
+                    opacity: 0;
+                }
+
+                #spritz-${uniqid}.proxy-visible #spritz-proxy-${uniqid} {
+                    transition: opacity .4s linear;
+                    opacity: 1;
+                }
+                `
+            }
+
             // generate the css
             css +=
             `
             #spritz-${uniqid} {
-                left: 0; right: 0;
-                top: 0; bottom: 0;
+                left: 50%;
+                top: 50%;
+                -webkit-transform: translate(-50%, -50%);
+                -moz-transform: translate(-50%, -50%);
+                -ms-transform: translate(-50%, -50%);
+                -o-transform: translate(-50%, -50%);
+                transform: translate(-50%, -50%);
+                overflow: hidden;
                 ${spriteFallback}
                 ${spriteBehavior}
             }
@@ -243,6 +279,47 @@ export default (options = {}) => {
 
             // append style element to the head
             document.head.appendChild(styleNode)
+        }
+    }
+
+    // Load and cache the
+    function _loadProxyImage (source) {
+        return new Promise(function (resolve, reject) {
+            if (typeof proxyImagesList[source] === 'undefined') {
+                let proxyImage = new Image()
+                proxyImage.onload = function () {
+                    proxyImagesList[source] = proxyImage
+                    resolve(proxyImagesList[source])
+                }
+                proxyImage.src = source
+            } else {
+                resolve(proxyImagesList[source])
+            }
+        })
+    }
+
+    // Replace the current step by it's HD replacement, only if it exists
+    function _proxy (step) {
+        // Check if the proxy frame has been set by the user
+        if (typeof settings.proxy[step] === 'undefined') {
+            return
+        }
+
+        // If the proxy dom element doesn't exist, we create it !
+        if (proxyNode === null) {
+            proxyNode = document.createElement('div')
+            htmlNode
+                .appendChild(proxyNode)
+                .setAttribute('id', 'spritz-proxy-' + uniqid + '')
+        }
+
+        // If the proxy dom element, we can load the proxy image
+        if (proxyNode !== null) {
+            let proxySrc = settings.proxy[step]
+            _loadProxyImage(proxySrc).then(function (proxyImage) {
+                proxyNode.style.backgroundImage = 'url("' + proxyImage.getAttribute('src') + '")'
+                htmlNode.classList.add('proxy-visible')
+            })
         }
     }
 
@@ -270,7 +347,10 @@ export default (options = {}) => {
     function destroy () {
         styleNode.parentNode.removeChild(styleNode)
         htmlNode.parentNode.removeChild(htmlNode)
-        imageNode = htmlNode = styleNode = svgNode = null
+
+        imageNode = styleNode = htmlNode = svgNode = proxyNode = proxyTimeout = null
+        proxyImagesList = []
+
         return instance.emit('destroy')
     }
 
@@ -295,19 +375,12 @@ export default (options = {}) => {
         return currentStep
     }
 
-    // Replace the current step by it's HD replacement if it exists
-    function _proxy (step) {
-        if (typeof settings.proxy[step] === undefined) {
-            return
-        }
-
-        // let proxy = settings.proxy[step]
-        // TODO
-    }
-
     // Change the current frame/step (no animation)
     function setStep (step = 1) {
         if (styleNode != null && htmlNode != null && imageNode != null) {
+            // Hide the proxy
+            htmlNode.classList.remove('proxy-visible')
+
             // Step & rows values, starting from 0
             let stepZero = step - 1
             let rowsZero = settings.rows - 1
@@ -329,8 +402,11 @@ export default (options = {}) => {
             // Save step
             currentStep = step
 
-            // Fire proxy replacement
-            _proxy(step)
+            // Fire proxy replacement after a certain time on a frame
+            clearTimeout(proxyTimeout)
+            proxyTimeout = setTimeout(function () {
+                _proxy(step)
+            }, 500)
 
             // Emit changed
             return instance.emit('change')
