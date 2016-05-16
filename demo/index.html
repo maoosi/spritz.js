@@ -9,6 +9,12 @@
     <title>spritz.js</title>
     <meta name="description" content="A small, modern, dependency-free sprites animation library.">
 
+	<!--[if lt IE 9]>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-sham.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/ie8/0.4.1/ie8.js"></script>
+	<![endif]-->
+
     <style>
         html, body {
             /* min-height: 200vh; */
@@ -90,7 +96,7 @@
 
 			// Display sprite
 			sprite.on('load', function() {
-				this.build()
+				this.build();
 			})
 
             // On click init button
@@ -104,8 +110,14 @@
             }, false);
 
 			// On change slider value
+            document.querySelector('#changeStep').addEventListener('change', function(event) {
+                var value = ((event.target.value - 1) % 18) + 1;
+                sprite.changeStep(value);
+            }, false);
+
+			// On change slider value
             document.querySelector('#changeStep').addEventListener('input', function(event) {
-                var value = ((event.target.value - 1) % 18) + 1
+                var value = ((event.target.value - 1) % 18) + 1;
                 sprite.changeStep(value);
             }, false);
 

@@ -1,6 +1,6 @@
+import 'classlist.js'
 import knot from 'knot.js'
 import shortid from 'shortid'
-
 
 export default (options = {}) => {
     /**
