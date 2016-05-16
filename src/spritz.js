@@ -432,7 +432,7 @@ export default (options = {}) => {
     }
 
     // Set a progress value: 0 = first step / 1 = last step
-    function changeProgress (progressValue) {
+    function changeProgress (progressValue = 0) {
         let stepEquiv = Math.round(progressValue * 100 * settings.steps / 100)
         if (stepEquiv === 0) stepEquiv++
         return changeStep(stepEquiv)

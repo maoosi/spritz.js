@@ -12,9 +12,10 @@ A small, modern, dependency-free, **sprites animation library**.
 * [ ] Publish on NPM
 * [ ] Publish on JSDelivr
 * [ ] Demo samples on Codepen
-* [ ] Animated ease transitions between steps
+* [ ] Animated transitions between steps (incl. FPS and easing options)
+* [ ] Debug mode with detailed console outputs
 * [ ] Options: From, To
-* [ ] Loop animation API: FPS, Start, Stop, ...
+* [ ] Loop animation API: FPS, Start, Stop, Flip, Range ...
 
 ## Getting Started
 
@@ -80,7 +81,7 @@ Option details are detailed below.
 
 ### Src (required)
 
-Define the **path to your sprite**. Any format accepted (.jpg / .png / .gif).
+Specify the **path to your sprite**. Any format accepted (.jpg / .png / .gif).
 
 > If you plan to use a **mask** for your sprite, we recommend to use a .jpg
 
@@ -115,7 +116,7 @@ Spritz({
 
 ### Steps (required)
 
-**Number of total steps / frames**, that your sprite includes. _Starting from 1_.
+Define the **number of total steps / frames**, that your sprite includes. _Starting from 1_.
 
 ```javascript
 Spritz({
@@ -126,11 +127,101 @@ Spritz({
 
 ### Rows (required)
 
-**Number of rows / lines**, that your sprite includes. _Starting from 1_.
+Define the **number of rows / lines**, that your sprite includes. _Starting from 1_.
 
 ```javascript
 Spritz({
 	rows: 4,
+	// ...
+})
+```
+
+### Container (optional, default: "body")
+
+Specify the **container** to use for the sprite element.
+
+**Default:** "body"
+
+```javascript
+Spritz({
+	container: '.selector',
+	// ...
+})
+```
+
+### Initial (optional, default: 1)
+
+Define the **initial step / frame** where to initiate the sprite.
+
+**Default:** 1
+
+```javascript
+Spritz({
+	initial: 3,
+	// ...
+})
+```
+
+### Flip (optional, default: false)
+
+If set to true, the **sprite will be horizontaly mirrored**. For example, this allow you to reverse the orientation of a character sprite.
+
+**Default:** false
+
+```javascript
+Spritz({
+	flip: true,
+	// ...
+})
+```
+
+### Responsive (optional, default: false)
+
+If set to true, instead of using its original sizes, the **sprite sizes will adapt to its container element**.
+
+**Default:** false
+
+```javascript
+Spritz({
+	responsive: true,
+	// ...
+})
+```
+
+### Mask (optional, default: false)
+
+Specify a **path to a sprite mask image**. This is just a black and white image that represents the transparent areas, and will be used as alpha mask. 8-bit PNG format is recommended.
+
+> **The mask image has to be the exact replica of your main sprite source.** It means same sizes, same steps, same rows, and same positioning.
+
+**Default:** false
+
+```javascript
+Spritz({
+	mask: 'path/to/sprite-alpha-mask.png',
+	// ...
+})
+```
+
+### Proxy (optional, default: false)
+
+JSON object defining **HD replacement proxy images**. Keys will defines the step / frame number. Values will define the path to the image. 24-bit PNG with transparency is recommended, if the sprite require transparency.
+
+If defined, the replacement will be triggered asynchronously, AFTER any step change.
+
+> Each proxy image has to be the exact replica of the sprite step to replace.
+
+**Default:** false
+
+```javascript
+Spritz({
+	proxy: {
+        1: 'path/to/proxy/hd-replacement-01.png',
+        2: 'path/to/proxy/hd-replacement-02.png',
+        3: 'path/to/proxy/hd-replacement-03.png',
+        4: 'path/to/proxy/hd-replacement-04.png',
+        // ...
+    },
 	// ...
 })
 ```
@@ -146,7 +237,7 @@ Spritz exposes the following methods, and corresponding events:
 * [changeStep](#changestep)
 * [changeProgress](#changeprogress)
 * [getCurrentStep](#getcurrentstep)
-* [isMaskingSupported](#ismasksupported)
+* [isMaskingSupported](#ismaskingsupported)
 
 Note that **all methods, including those from the event emitter, are chainable**.
 
@@ -190,6 +281,76 @@ instance.build()
 instance.on('build', () => {
   // ...
 })
+```
+
+### .destroy()
+
+Used to _completely destroy the sprite element and behaviors_. Restore the intial state.
+
+```javascript
+// destroy completely the sprite, and restore initial state
+instance.destroy()
+
+// 'destroy' is emitted AFTER the sprite has been destroyed
+instance.on('destroy', () => {
+  // ...
+})
+```
+
+### .changeStep(step)
+
+Used to _change the current active step of the sprite_.
+
+**Parameters:**
+
+* step (integer): step / frame number. Default: 1
+
+```javascript
+// change the current active step to 3
+instance.changeStep(3)
+
+// 'change' is emitted AFTER the sprite step has been changed
+instance.on('change', () => {
+  // ...
+})
+```
+
+### .changeProgress(progressValue)
+
+Used to _change the current progress step of the sprite_. First step / frame is 0. Last step / frame is 1. This can be useful if you want to combine Spritz and Scroll Magic with custom actions (cf: http://scrollmagic.io/examples/basic/custom_actions.html).
+
+**Parameters:**
+
+* progressValue (float): progress value between 0 and 1. Default: 0
+
+```javascript
+// change the current progress to 0.2 (20%)
+instance.changeProgress(0.2)
+
+// 'change' is emitted AFTER the sprite step has been changed
+instance.on('change', () => {
+  // ...
+})
+```
+
+### .getCurrentStep()
+
+Return the current active step / frame of the sprite.
+
+```javascript
+// Get the current sprite step
+instance.getCurrentStep()
+```
+
+### .isMaskingSupported()
+
+Return true or false, depending if the masking feature is supported by the browser or not.
+
+> **To perfom the masking, Spritz uses SVG containers with mask elements.** Support based on http://caniuse.com/#feat=svg
+
+```javascript
+// Test if masking is supported
+instance.isMaskingSupported()
 ```
 
 ## Browser Support
