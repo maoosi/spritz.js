@@ -1,21 +1,34 @@
 # Spritz.js
 
-> **WORK IN PROGRESS** - **NOT PUBLISHED ON NPM** - **DOCUMENTATION WRITING IN PROGRESS**
+> **TESTING IN PROGRESS** - **YET NOT PUBLISHED ON NPM**
 
 A small, modern, dependency-free, **sprites animation library**.
 
+**Can be used for:** 360 viewers / Products animation / Interactive experiences / Html5 games
+
+## Features
+
+* **Accessible** - full support for screen readers
+* **Lightweight** - under 12KB minified
+* **Responsive** - as you'd expect these days
+* **[Compatible](#browser-support)** - IE8+ support, mobile support
+* **[API / Events](#api--events)** - init, load, destroy, changeStep and more
+* **No dependencies** - written in ES6 JavaScript, no jQuery required
+
+Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
+
 ## Work in progress
 
-* [ ] Version 1.0.0
 * [ ] Testing
-* [ ] Documentation
+* [ ] Accessibility support (WCAG 2.0, ARIA, screen readers)
 * [ ] Publish on NPM
 * [ ] Publish on JSDelivr
 * [ ] Demo samples on Codepen
 * [ ] Animated transitions between steps (incl. FPS and easing options)
 * [ ] Debug mode with detailed console outputs
-* [ ] Options: From, To
-* [ ] Loop animation API: FPS, Start, Stop, Flip, Range ...
+* [ ] Errors management
+* [ ] Options: Mobile (enable / disable proxy for mobile devices), From (first step / frame to consider), To (last step / frame to consider)
+* [ ] API / Events: Start (start loop animation), Stop (stop loop animation), Flip (flip the sprite), Range (change the current range of steps / frames to consider) ...
 
 ## Getting Started
 
@@ -27,7 +40,7 @@ A small, modern, dependency-free, **sprites animation library**.
 
 ## Installation
 
-### Using NPM
+### Using NPM // Testing in progress - Yet not published on NPM
 
 Spritz was developed with a modern JavaScript workflow in mind. To use it, it's recommended you have a build system in place that can transpile ES6, and bundle modules.
 
@@ -202,6 +215,7 @@ Spritz({
 	// ...
 })
 ```
+Please refer to [Browser Support](#browser-support) section, for more information about masking support.
 
 ### Proxy (optional, default: false)
 
@@ -234,8 +248,8 @@ Spritz exposes the following methods, and corresponding events:
 * [load](#load)
 * [build](#build)
 * [destroy](#destroy)
-* [changeStep](#changestep)
-* [changeProgress](#changeprogress)
+* [changeStep](#changestepstep)
+* [changeProgress](#changeprogressprogressvalue)
 * [getCurrentStep](#getcurrentstep)
 * [isMaskingSupported](#ismaskingsupported)
 
@@ -304,10 +318,14 @@ Used to _change the current active step of the sprite_.
 **Parameters:**
 
 * step (integer): step / frame number. Default: 1
+	* |-- Also support keywords "previous" and "next".
 
 ```javascript
 // change the current active step to 3
 instance.changeStep(3)
+
+// change the current active step to the previous step
+instance.changeStep('previous')
 
 // 'change' is emitted AFTER the sprite step has been changed
 instance.on('change', () => {
@@ -355,15 +373,17 @@ instance.isMaskingSupported()
 
 ## Browser Support
 
-Spritz is supported by **Evergreen Browsers** such as: IE 10+, Opera, Safari, Firefox & Chrome.
+Spritz is fully supported by **Evergreen Browsers** such as: IE 10+, Opera, Safari, Firefox & Chrome. Graceful degradation support has also been implemented on the following:
 
-> NON-EVERGREEN BROWSERS SUPPORT IN PROGRESS
+* IE 8+ // Testing in progress
+* iOS Safari // Testing in progress
+* Android Browser // Testing in progress
 
-_It also supports the following natively_:
+**Notes about support:**
 
-* IE 8+
-* iOS Safari 7.1+
-* Android Browser 4.4+
+* There is known issue with **Safari** and SVG's that makes rendering very slow. Thereby, masking is disabled for Safari.
+* In order to limit data usage on **mobile devices**, proxy replacement has been disabled by default.
+* **IE 8** uses render fallbacks and doens't support SVG's. (For SVG support on IE 8, you can include the following polyfill into your project: https://code.google.com/archive/p/svgweb/)
 
 ## License
 

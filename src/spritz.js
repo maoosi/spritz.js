@@ -22,7 +22,10 @@ export default (options = {}) => {
 
         src: options.src,
         mask: options.mask || false,
-        proxy: options.proxy || false
+        proxy: options.proxy || false,
+
+        ariaTitle: options.ariaTitle || 'Sprite image',
+        ariaDescription: options.ariaDescription || 'Sprite image used for presentation purpose'
     }
 
 
@@ -131,7 +134,11 @@ export default (options = {}) => {
             document
                 .querySelector(settings.container)
                 .appendChild(htmlNode)
-                .setAttribute('id', 'spritz-' + uniqid + '')
+
+            htmlNode.setAttribute('id', 'spritz-' + uniqid + '')
+            htmlNode.setAttribute('aria-hidden', 'true')
+            htmlNode.setAttribute('role', 'presentation')
+            htmlNode.setAttribute('tabindex', '-1')
         }
     }
 
@@ -140,13 +147,15 @@ export default (options = {}) => {
         if (_canUseSVG() && settings.mask !== false && svgNode === null) {
             let svgMask =
             `
-            <svg id="spritz-svg-${uniqid}" preserveAspectRatio="xMinYMin" width="100%" height="100%" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${sprite.width} ${sprite.height}">
+            <svg id="spritz-svg-${uniqid}" preserveAspectRatio="xMinYMin" width="100%" height="100%" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" role="img" aria-labelledby="title-svg-${uniqid} desc-svg-${uniqid}" viewBox="0 0 ${sprite.width} ${sprite.height}">
+                <title id="title-svg-${uniqid}">${settings.ariaTitle}</title>
+                <desc id="desc-svg-${uniqid}">${settings.ariaDescription}</desc>
                 <defs>
                     <mask id="spritzTopMask">
-                        <image width="${settings.width}" height="${settings.height}" xlink:href="${settings.mask}"></image>
+                        <image width="${settings.width}" height="${settings.height}" role="presentation" xlink:href="${settings.mask}"></image>
                     </mask>
                 </defs>
-                <image mask="url(#spritzTopMask)" id="spritzTop" width="${settings.width}" height="${settings.height}" xlink:href="${settings.src}"></image>
+                <image mask="url(#spritzTopMask)" id="spritzTop" role="presentation" width="${settings.width}" height="${settings.height}" xlink:href="${settings.src}"></image>
             </svg>
             `
 
@@ -160,6 +169,11 @@ export default (options = {}) => {
 
     // Return true if SVG Mask can be used by the browser
     function _canUseSVG () {
+        // SVG Masking disabled for Safari (http://stackoverflow.com/questions/31384271/safari-unreasonably-slow-rendering-svg-files)
+        if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent) === true) {
+            return false
+        }
+
         // Return true if SVG support enabled (work for IE8+)
         return !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg', 'svg').createSVGRect)
     }
@@ -265,6 +279,7 @@ export default (options = {}) => {
                 -o-transform: translate(-50%, -50%);
                 transform: translate(-50%, -50%);
                 overflow: hidden;
+                outline: 0;
                 ${spriteFallback}
                 ${spriteBehavior}
             }
@@ -280,7 +295,7 @@ export default (options = {}) => {
         }
     }
 
-    // Load and cache the
+    // Load and cache the proxy image
     function _loadProxyImage (source) {
         return new Promise(function (resolve, reject) {
             if (typeof proxyImagesList[source] === 'undefined') {
@@ -308,7 +323,7 @@ export default (options = {}) => {
 
     // Replace the current step by it's HD replacement, only if it exists
     function _proxy (step) {
-        // Check if the proxy frame has been set by the user
+        // Check if the proxy frame has been defined by the user
         if (typeof settings.proxy[step] === 'undefined') {
             return
         }
@@ -316,12 +331,15 @@ export default (options = {}) => {
         // If the proxy dom element doesn't exist, we create it !
         if (proxyNode === null) {
             proxyNode = document.createElement('div')
+            proxyNode.setAttribute('role', 'img')
+            proxyNode.setAttribute('aria-label', settings.ariaDescription)
+
             htmlNode
                 .appendChild(proxyNode)
                 .setAttribute('id', 'spritz-proxy-' + uniqid + '')
         }
 
-        // If the proxy dom element, we can load the proxy image
+        // If the proxy dom element exists, we can load the proxy image
         if (proxyNode !== null) {
             let proxySrc = settings.proxy[step]
             _loadProxyImage(proxySrc).then(function (proxyImage) {
@@ -392,7 +410,7 @@ export default (options = {}) => {
             }
 
             // If prev step
-            if (step === 'prev') {
+            if (step === 'previous') {
                 step = _prevStep()
             }
 
