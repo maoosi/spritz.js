@@ -12,7 +12,9 @@ A small, modern, dependency-free, **sprites animation library**.
 * [ ] Publish on NPM
 * [ ] Publish on JSDelivr
 * [ ] Demo samples on Codepen
-* [ ] Animated transitions between steps
+* [ ] Animated ease transitions between steps
+* [ ] Options: From, To
+* [ ] Loop animation API: FPS, Start, Stop, ...
 
 ## Getting Started
 
@@ -113,7 +115,7 @@ Spritz({
 
 ### Steps (required)
 
-**Number of steps / frames**, that your sprite includes. _Starting from 1_.
+**Number of total steps / frames**, that your sprite includes. _Starting from 1_.
 
 ```javascript
 Spritz({
@@ -141,9 +143,9 @@ Spritz exposes the following methods, and corresponding events:
 * [load](#load)
 * [build](#build)
 * [destroy](#destroy)
-* [setStep](#setstep)
-* [setProgress](#setprogress)
-* [getStep](#getstep)
+* [changeStep](#changestep)
+* [changeProgress](#changeprogress)
+* [getCurrentStep](#getcurrentstep)
 * [isMaskingSupported](#ismasksupported)
 
 Note that **all methods, including those from the event emitter, are chainable**.

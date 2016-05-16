@@ -38,7 +38,7 @@
 	<div class="controls">
 	    <button id="init">Init</button>
 	    <button id="destroy">Destroy</button>
-		<input id="setStep" type="range" min="1" max="36" value="1" step="1" />
+		<input id="changeStep" type="range" min="1" max="36" value="1" step="1" />
 	</div>
 
     <div id="sprite-1"></div>
@@ -95,7 +95,7 @@
 
             // On click init button
             document.querySelector('#init').addEventListener('click', function(event) {
-                sprite.init(document.querySelector('#setStep').value);
+                sprite.init(document.querySelector('#changeStep').value);
             }, false);
 
             // On click destroy button
@@ -104,9 +104,9 @@
             }, false);
 
 			// On change slider value
-            document.querySelector('#setStep').addEventListener('input', function(event) {
+            document.querySelector('#changeStep').addEventListener('input', function(event) {
                 var value = ((event.target.value - 1) % 18) + 1
-                sprite.setStep(value);
+                sprite.changeStep(value);
             }, false);
 
       	});

@@ -83,11 +83,11 @@ export default (options = {}) => {
         load: load,
         build: build,
         destroy: destroy,
-        getStep: getStep,
-        setStep: setStep,
-        goToStep: goToStep,
-        isMaskingSupported: isMaskingSupported,
-        setProgress: setProgress
+        changeStep: changeStep,
+        changeProgress: changeProgress,
+        animateStep: animateStep,
+        getCurrentStep: getCurrentStep,
+        isMaskingSupported: isMaskingSupported
     })
 
     return instance
@@ -166,7 +166,7 @@ export default (options = {}) => {
 
     // Set default step
     function _defaultStep () {
-        setStep(settings.initial)
+        changeStep(settings.initial)
     }
 
     // Generate the CSS
@@ -379,12 +379,12 @@ export default (options = {}) => {
     }
 
     // Return the current frame/step
-    function getStep () {
+    function getCurrentStep () {
         return currentStep
     }
 
     // Change the current frame/step (no animation)
-    function setStep (step = 1) {
+    function changeStep (step = 1) {
         if (styleNode != null && htmlNode != null && imageNode != null) {
             // If next step
             if (step === 'next') {
@@ -432,14 +432,14 @@ export default (options = {}) => {
     }
 
     // Set a progress value: 0 = first step / 1 = last step
-    function setProgress (progressValue) {
+    function changeProgress (progressValue) {
         let stepEquiv = Math.round(progressValue * 100 * settings.steps / 100)
         if (stepEquiv === 0) stepEquiv++
-        return setStep(stepEquiv)
+        return changeStep(stepEquiv)
     }
 
     // Update current frame/step (animated)
-    function goToStep (step, fps = 12, easing = 'ease') {
+    function animateStep (step, fps = 12, easing = 'ease') {
         // TODO
     }
 }
