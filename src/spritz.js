@@ -86,9 +86,7 @@ export default (options = {}) => {
         getStep: getStep,
         setStep: setStep,
         goToStep: goToStep,
-        prevStep: prevStep,
-        nextStep: nextStep,
-        isMaskSupported: isMaskSupported,
+        isMaskingSupported: isMaskingSupported,
         setProgress: setProgress
     })
 
@@ -298,6 +296,16 @@ export default (options = {}) => {
         })
     }
 
+    // Return the following step
+    function _nextStep () {
+        return currentStep < settings.steps ? currentStep + 1 : 1
+    }
+
+    // Return the previous step
+    function _prevStep () {
+        return currentStep > 1 ? currentStep - 1 : settings.steps
+    }
+
     // Replace the current step by it's HD replacement, only if it exists
     function _proxy (step) {
         // Check if the proxy frame has been set by the user
@@ -328,7 +336,7 @@ export default (options = {}) => {
     * Public methods
     */
 
-    // Init the instance
+    // Initiate the instance
     function init (initial = null) {
         if (initial !== null) settings.initial = initial
         _runSeries(__init).then(function () {
@@ -366,7 +374,7 @@ export default (options = {}) => {
     }
 
     // Return true if SVG Masking is supported
-    function isMaskSupported () {
+    function isMaskingSupported () {
         return _canUseSVG
     }
 
@@ -378,6 +386,16 @@ export default (options = {}) => {
     // Change the current frame/step (no animation)
     function setStep (step = 1) {
         if (styleNode != null && htmlNode != null && imageNode != null) {
+            // If next step
+            if (step === 'next') {
+                step = _nextStep()
+            }
+
+            // If prev step
+            if (step === 'prev') {
+                step = _prevStep()
+            }
+
             // Hide the proxy
             htmlNode.classList.remove('proxy-visible')
 
@@ -399,7 +417,7 @@ export default (options = {}) => {
                 htmlNode.style.backgroundPosition = '' + positionX + '% ' + positionY + '%'
             }
 
-            // Save step
+            // Save current step
             currentStep = step
 
             // Fire proxy replacement after a certain time on a frame
@@ -411,18 +429,6 @@ export default (options = {}) => {
             // Emit changed
             return instance.emit('change')
         }
-    }
-
-    // Go to the next step
-    function nextStep () {
-        let nextStep = currentStep < settings.steps ? currentStep + 1 : 1
-        return setStep(nextStep)
-    }
-
-    // Go to the previous step
-    function prevStep () {
-        let prevStep = currentStep > 1 ? currentStep - 1 : settings.step
-        return setStep(prevStep)
     }
 
     // Set a progress value: 0 = first step / 1 = last step
