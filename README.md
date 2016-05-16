@@ -16,8 +16,8 @@ A small, modern, dependency-free, **sprites animation library**.
 
 ## Getting Started
 
-1. [Installation](#install)
-2. [Usage](#instantiate)
+1. [Installation](#installation)
+2. [Usage](#usage)
 3. [Options](#options)
 4. [API / Events](#api--events)
 5. [Browser Support](#browser-support)
@@ -139,7 +139,7 @@ Spritz exposes the following methods, and corresponding events:
 
 * [init](#init)
 * [load](#load)
-* [build](#resize)
+* [build](#build)
 * [destroy](#destroy)
 * [setStep](#setstep)
 * [setProgress](#setprogress)
