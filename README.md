@@ -4,14 +4,14 @@
 
 A small, modern, dependency-free, **sprites animation library**.
 
-**Can be used for:** 360 viewers, products animation, interactive experiences, html5 games
+**Can be used for:** 360 viewers, products animation, interactive experiences, html5 games...
 
 ## Features
 
 * **Accessible** - full support for screen readers
 * **Lightweight** - ~35KB minified
 * **Responsive** - as you'd expect these days
-* **[Compatible](#browser-support)** - IE8+ support, mobile support
+* **[Compatible](#browser-support)** - IE9+ support, mobile support
 * **[API / Events](#api--events)** - init, load, destroy, changeStep and more
 * **No dependencies** - written in ES6 JavaScript, no jQuery required
 
@@ -402,11 +402,11 @@ instance.isMaskingSupported()
 
 ## Browser Support
 
-> **TESTING IN PROGRESS** - **YET NOT COMPATIBLE WITH IE8**
+> **TESTING IN PROGRESS** - **YET NOT COMPATIBLE WITH IE8 AND MOBILE DEVICES**
 
 Spritz is fully supported by **Evergreen Browsers** such as: IE 10+, Opera, Safari, Firefox & Chrome. Graceful degradation support has also been implemented on the following:
 
-* IE 8+
+* IE 9+
 * iOS Safari
 * Android Browser
 
