@@ -1,6 +1,7 @@
 import 'classlist.js' // Cross-browser element.classList - https://github.com/eligrey/classList.js/
 import knot from 'knot.js' // A browser-based event emitter - https://github.com/callmecavs/knot.js
 import shortid from 'shortid' // Short id generator - https://github.com/dylang/shortid
+import debounce from 'lodash.debounce' // Debounce function - https://lodash.com/docs#debounce
 
 export default (options = {}) => {
     /**
@@ -19,6 +20,7 @@ export default (options = {}) => {
 
         flip: options.flip || false,
         responsive: options.responsive || false,
+        breakpoint: options.breakpoint || 640,
 
         src: options.src,
         mask: options.mask || false,
@@ -70,6 +72,7 @@ export default (options = {}) => {
         _generateCSS,
         _applySettingsClasses,
         _generateAccessibility,
+        _bindEvents,
         _defaultStep
     ]
 
@@ -143,6 +146,24 @@ export default (options = {}) => {
                 .appendChild(htmlNode)
             htmlNode.appendChild(bgNode)
         }
+    }
+
+    // Attach events listeners
+    function _bindEvents () {
+        window.addEventListener('resize', _viewportResize())
+    }
+
+    // Detach events listeners
+    function _unbindEvents () {
+        window.removeEventListener('resize', _viewportResize())
+    }
+
+    // Viewport resizing
+    function _viewportResize () {
+        return debounce(function (event) {
+            settings.initial = currentStep
+            build()
+        }, 500)
     }
 
     // Generate accessibility tags
@@ -381,6 +402,12 @@ export default (options = {}) => {
             return
         }
 
+        // Disable for mobile devices
+        let viewportWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth
+        if (settings.breakpoint !== false && viewportWidth < settings.breakpoint) {
+            return
+        }
+
         // If the proxy dom element doesn't exist, we create it !
         if (proxyNode === null) {
             proxyNode = document.createElement('div')
@@ -428,6 +455,8 @@ export default (options = {}) => {
 
     // Destroy completely the sprite and restore initial state
     function destroy () {
+        _unbindEvents()
+
         styleNode.parentNode.removeChild(styleNode)
         htmlNode.parentNode.removeChild(htmlNode)
 

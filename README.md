@@ -114,8 +114,11 @@ Spritz({
 	initial: 1,
 	flip: false,
 	responsive: false,
+	breakpoint: 640,
 	mask: 'path/to/sprite-alpha.png',
-	proxy: false
+	proxy: false,
+	ariaTitle: 'Sprite image',
+	ariaDescription: 'Sprite image used for presentation purpose'
 })
 ```    
 
@@ -226,6 +229,23 @@ If set to true, instead of using its original sizes, the **sprite sizes will ada
 ```javascript
 Spritz({
 	responsive: true,
+	// ...
+})
+```
+
+### Breakpoint (optional, default: 640)
+
+Define the **minimum breakpoint size in pixels**. By default, devices below 640px width will be considered as "limited", and will have some features disabled. If set to false, limitation will be disabled, and all devices will benefit from the same features.
+
+_Features disabled for limited devices_:
+
+* Proxy images replacment (in order to the data consumption)
+
+**Default:** 640
+
+```javascript
+Spritz({
+	breakpoint: 640,
 	// ...
 })
 ```
