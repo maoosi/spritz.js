@@ -239,7 +239,7 @@ Define the **minimum breakpoint size in pixels**. By default, devices below 640p
 
 _Features disabled for limited devices_:
 
-* Proxy images replacment (in order to the data consumption)
+* Proxy images replacement (in order to limit the data consumption)
 
 **Default:** 640
 
