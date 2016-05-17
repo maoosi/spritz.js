@@ -1,6 +1,6 @@
-import 'classlist.js'
-import knot from 'knot.js'
-import shortid from 'shortid'
+import 'classlist.js' // Cross-browser element.classList - https://github.com/eligrey/classList.js/
+import knot from 'knot.js' // A browser-based event emitter - https://github.com/callmecavs/knot.js
+import shortid from 'shortid' // Short id generator - https://github.com/dylang/shortid
 
 export default (options = {}) => {
     /**
@@ -33,7 +33,6 @@ export default (options = {}) => {
     * Useful constants
     */
 
-    // const windowsHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight
     const uniqid = shortid.generate()
 
 
@@ -46,6 +45,8 @@ export default (options = {}) => {
     let htmlNode = null
     let svgNode = null
     let proxyNode = null
+    let bgNode = null
+
     let proxyImagesList = []
     let proxyTimeout = null
     let backgroundSize = null
@@ -67,6 +68,8 @@ export default (options = {}) => {
         _generateDOM,
         _generateMask,
         _generateCSS,
+        _applySettingsClasses,
+        _generateAccessibility,
         _defaultStep
     ]
 
@@ -131,14 +134,72 @@ export default (options = {}) => {
     function _generateDOM () {
         if (htmlNode === null) {
             htmlNode = document.createElement('div')
+            bgNode = document.createElement('div')
+            bgNode.setAttribute('id', 'spritz-bg-' + uniqid + '')
+            htmlNode.setAttribute('id', 'spritz-' + uniqid + '')
+
             document
                 .querySelector(settings.container)
                 .appendChild(htmlNode)
+            htmlNode.appendChild(bgNode)
+        }
+    }
 
-            htmlNode.setAttribute('id', 'spritz-' + uniqid + '')
+    // Generate accessibility tags
+    function _generateAccessibility () {
+        // Proxy node
+        if (proxyNode !== null) {
+            proxyNode.setAttribute('role', 'img')
+            proxyNode.setAttribute('aria-label', settings.ariaDescription)
+        }
+
+        // Svg node
+        if (svgNode !== null) {
+            svgNode.setAttribute('role', 'img')
+            svgNode.setAttribute('aria-label', settings.ariaDescription)
+        }
+
+        // Html node
+        if (htmlNode !== null) {
             htmlNode.setAttribute('aria-hidden', 'true')
             htmlNode.setAttribute('role', 'presentation')
             htmlNode.setAttribute('tabindex', '-1')
+        }
+
+        // Bg node
+        if (bgNode !== null) {
+            bgNode.setAttribute('role', 'img')
+            bgNode.setAttribute('aria-label', settings.ariaDescription)
+        }
+    }
+
+    // Apply classes according user settings
+    function _applySettingsClasses () {
+        if (htmlNode !== null) {
+            // Responsive
+            if (settings.responsive === true) {
+                htmlNode.classList.remove('rwd--false')
+                htmlNode.classList.add('rwd--true')
+            } else {
+                htmlNode.classList.remove('rwd--true')
+                htmlNode.classList.add('rwd--false')
+            }
+
+            // Flip
+            if (settings.flip === true) {
+                htmlNode.classList.remove('flip--false')
+                htmlNode.classList.add('flip--true')
+            } else {
+                htmlNode.classList.remove('flip--true')
+                htmlNode.classList.add('flip--false')
+            }
+
+            // No Svg support
+            if (svgNode === null) {
+                htmlNode.classList.remove('svg--true')
+            } else {
+                htmlNode.classList.add('svg--true')
+            }
         }
     }
 
@@ -159,10 +220,7 @@ export default (options = {}) => {
             </svg>
             `
 
-            document
-                .querySelector('#spritz-' + uniqid + '')
-                .innerHTML = svgMask
-
+            bgNode.insertAdjacentHTML('afterend', svgMask)
             svgNode = document.querySelector('#spritz-svg-' + uniqid + '')
         }
     }
@@ -186,91 +244,52 @@ export default (options = {}) => {
     // Generate the CSS
     function _generateCSS () {
         if (styleNode === null && imageNode != null) {
-            let spriteBehavior = ''
-            let spriteFallback = ''
-            let css = ''
-
-            // if responsive option, width = 100% & height = proportional
-            if (settings.responsive === true) {
-                spriteBehavior +=
-                `
-                position: relative;
-                width: 100%;
-                `
-                css +=
-                `
-                #spritz-${uniqid}::after {
-                    content: '';
-                    display: block;
-                    padding-bottom: ${sprite.padding}%;
-                }
-                `
-                // fixed sizes
-            } else {
-                spriteBehavior +=
-                `
+            let css =
+            `
+            /* == Sprite base css == */
+            #spritz-${uniqid} {
+                overflow: hidden;
+                outline: 0;
+            }
+            #spritz-bg-${uniqid} {
                 position: absolute;
-                width: ${sprite.width}px;
-                height: ${sprite.height}px;
-                `
-            }
-
-            // If flip sprite
-            if (settings.flip === true) {
-                spriteBehavior +=
-                `
-                -webkit-transform: scaleX(-1);
-                -moz-transform: scaleX(-1);
-                -ms-transform: scaleX(-1);
-                -o-transform: scaleX(-1);
-                transform: scaleX(-1);
-                filter: FlipH;
-                -ms-filter: 'FlipH';
-                `
-            }
-
-            // if SVG is not supported we display the CSS background fallback
-            if (svgNode === null) {
-                spriteFallback +=
-                `
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
                 background: url('${imageNode.src}') no-repeat 0 0%;
                 background-size: ${backgroundSize}%;
                 background-position: 0 0;
-                `
             }
 
-            // if there is proxy images
-            if (settings.proxy !== false) {
-                css +=
-                `
-                #spritz-proxy-${uniqid} {
-                    position: absolute;
-                    left: 0;
-                    top: 0;
-                    width: 100%;
-                    height: 100%;
-                    opacity: 0;
-                    background-repeat: no-repeat;
-                    background-size: 100%;
-                    background-position: 0 0;
-                }
-
-                #spritz-${uniqid}.proxy-visible #spritz-svg-${uniqid} {
-                    transition: opacity 0s linear .4s;
-                    opacity: 0;
-                }
-
-                #spritz-${uniqid}.proxy-visible #spritz-proxy-${uniqid} {
-                    transition: opacity .4s linear;
-                    opacity: 1;
-                }
-                `
+            /* == SVG Masking == */
+            #spritz-svg-${uniqid} {
+                position: absolute;
+                top: 0;
+                left: 0;
+                opacity: 0;
+            }
+            #spritz-${uniqid}.svg--true #spritz-bg-${uniqid} {
+                opacity: 0;
+            }
+            #spritz-${uniqid}.svg--true #spritz-svg-${uniqid} {
+                opacity: 1;
             }
 
-            // generate the css
-            css +=
-            `
-            #spritz-${uniqid} {
+            /* == Responsive mode == */
+            #spritz-${uniqid}.rwd--true {
+                position: relative;
+                width: 100%;
+            }
+            #spritz-${uniqid}.rwd--true::after {
+                content: '';
+                display: block;
+                padding-bottom: ${sprite.padding}%;
+            }
+
+            /* == Non-responsive mode == */
+            #spritz-${uniqid}.rwd--false {
+                position: absolute;
                 left: 50%;
                 top: 50%;
                 -webkit-transform: translate(-50%, -50%);
@@ -278,10 +297,44 @@ export default (options = {}) => {
                 -ms-transform: translate(-50%, -50%);
                 -o-transform: translate(-50%, -50%);
                 transform: translate(-50%, -50%);
-                overflow: hidden;
-                outline: 0;
-                ${spriteFallback}
-                ${spriteBehavior}
+                width: ${sprite.width}px;
+                height: ${sprite.height}px;
+            }
+
+            /* == Proxy == */
+            #spritz-proxy-${uniqid} {
+                position: absolute;
+                left: -9999px;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                opacity: 0;
+                background-repeat: no-repeat;
+                background-size: 100%;
+                background-position: 0 0;
+            }
+            #spritz-${uniqid}.proxy--visible #spritz-svg-${uniqid},
+            #spritz-${uniqid}.proxy--visible #spritz-bg-${uniqid} {
+                transition: opacity 0.6s linear 0.7s;
+                opacity: 0;
+            }
+            #spritz-${uniqid}.proxy--visible #spritz-proxy-${uniqid} {
+                transition: opacity 0.6s linear 0.1s;
+                opacity: 1;
+                left: 0;
+            }
+
+            /* == Flip == */
+            #spritz-${uniqid}.flip--true #spritz-proxy-${uniqid},
+            #spritz-${uniqid}.flip--true #spritz-bg-${uniqid},
+            #spritz-${uniqid}.flip--true #spritz-svg-${uniqid} {
+                -webkit-transform: scaleX(-1);
+                -moz-transform: scaleX(-1);
+                -ms-transform: scaleX(-1);
+                -o-transform: scaleX(-1);
+                transform: scaleX(-1);
+                filter: fliph();
+                -ms-filter: 'FlipH';
             }
             `
 
@@ -331,9 +384,6 @@ export default (options = {}) => {
         // If the proxy dom element doesn't exist, we create it !
         if (proxyNode === null) {
             proxyNode = document.createElement('div')
-            proxyNode.setAttribute('role', 'img')
-            proxyNode.setAttribute('aria-label', settings.ariaDescription)
-
             htmlNode
                 .appendChild(proxyNode)
                 .setAttribute('id', 'spritz-proxy-' + uniqid + '')
@@ -344,7 +394,14 @@ export default (options = {}) => {
             let proxySrc = settings.proxy[step]
             _loadProxyImage(proxySrc).then(function (proxyImage) {
                 proxyNode.style.backgroundImage = 'url("' + proxyImage.getAttribute('src') + '")'
-                htmlNode.classList.add('proxy-visible')
+                proxyNode.style.left = '-9999px'
+
+                htmlNode.classList.add('proxy--visible')
+
+                // IE Fix for rendering
+                setTimeout(function () {
+                    proxyNode.style.left = '0'
+                }, 100)
             })
         }
     }
@@ -374,7 +431,7 @@ export default (options = {}) => {
         styleNode.parentNode.removeChild(styleNode)
         htmlNode.parentNode.removeChild(htmlNode)
 
-        imageNode = styleNode = htmlNode = svgNode = proxyNode = proxyTimeout = null
+        imageNode = styleNode = bgNode = htmlNode = svgNode = proxyNode = proxyTimeout = null
         proxyImagesList = []
 
         return instance.emit('destroy')
@@ -404,6 +461,9 @@ export default (options = {}) => {
     // Change the current frame/step (no animation)
     function changeStep (step = 1) {
         if (styleNode != null && htmlNode != null && imageNode != null) {
+            // Hide the proxy
+            htmlNode.classList.remove('proxy--visible')
+
             // If next step
             if (step === 'next') {
                 step = _nextStep()
@@ -413,9 +473,6 @@ export default (options = {}) => {
             if (step === 'previous') {
                 step = _prevStep()
             }
-
-            // Hide the proxy
-            htmlNode.classList.remove('proxy-visible')
 
             // Step & rows values, starting from 0
             let stepZero = step - 1
@@ -432,7 +489,7 @@ export default (options = {}) => {
                 positionY = (positionY * rowsZero / 100) * sprite.height
                 svgNode.setAttribute('viewBox', '' + positionX + ' ' + positionY + ' ' + sprite.width + ' ' + sprite.height + ' ')
             } else {
-                htmlNode.style.backgroundPosition = '' + positionX + '% ' + positionY + '%'
+                bgNode.style.backgroundPosition = '' + positionX + '% ' + positionY + '%'
             }
 
             // Save current step

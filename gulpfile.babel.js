@@ -20,6 +20,8 @@ import notifier from 'node-notifier'
 import header from 'gulp-header'
 import uglify from 'gulp-uglify'
 import gutil from 'gulp-util'
+import es3ify from 'gulp-es3ify'
+import replace from 'gulp-replace';
 
 
 // VARS
@@ -89,8 +91,13 @@ const build = () => {
 		.on('end', () => console.timeEnd('Bundling finished'))
 		.pipe(source('spritz.min.js'))
 		.pipe(buffer())
+        .pipe(es3ify())
 		.pipe(sourcemaps.init({ loadMaps: true }))
 		.pipe(uglify())
+        .pipe(replace(/\/\* == ([\s\S]*?) == \*\//g, ''))
+        .pipe(replace(/(\\n){2,}/g, '\\n'))
+        .pipe(replace(/ +/g, ' '))
+        .pipe(replace(/: /g, ':'))
 		.pipe(header(attribution, { pkg: packageJSON }))
 		.pipe(sourcemaps.write('./', { addComment: false }))
 		.pipe(gulp.dest(folders.dist))

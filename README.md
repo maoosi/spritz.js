@@ -1,15 +1,15 @@
 # Spritz.js
 
-> **TESTING IN PROGRESS** - **YET NOT PUBLISHED ON NPM**
+> **TESTING IN PROGRESS** - **YET NOT PUBLISHED ON NPM AND JSDELIVR**
 
 A small, modern, dependency-free, **sprites animation library**.
 
-**Can be used for:** 360 viewers / Products animation / Interactive experiences / Html5 games
+**Can be used for:** 360 viewers, products animation, interactive experiences, html5 games
 
 ## Features
 
 * **Accessible** - full support for screen readers
-* **Lightweight** - under 12KB minified
+* **Lightweight** - ~35KB minified
 * **Responsive** - as you'd expect these days
 * **[Compatible](#browser-support)** - IE8+ support, mobile support
 * **[API / Events](#api--events)** - init, load, destroy, changeStep and more
@@ -40,17 +40,29 @@ Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
 
 ## Installation
 
-### Using NPM // Testing in progress - Yet not published on NPM
+> **TESTING IN PROGRESS** - **YET NOT PUBLISHED ON NPM AND JSDELIVR**
 
-Spritz was developed with a modern JavaScript workflow in mind. To use it, it's recommended you have a build system in place that can transpile ES6, and bundle modules.
+### Using NPM 
 
 ```bash
 $ npm install spritz.js --save
 ```
 
+### jsDelivr CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/spritz.js/1.0.0/spritz.min.js"></script>
+```
+
 ## Usage
 
-Simply import Spritz, then instantiate it.
+Spritz was developed with a **modern JavaScript workflow** in mind. To use it, it's recommended you have a build system in place that can transpile ES6, and bundle modules.
+
+**If you don't have any ES6 workflow setup**, you can alternatively use the library in a more "classic" way, by including the minified version of the library into your project. For more details, please refer to the [Without ES6](#withoutes6) example below.
+
+### ES6
+
+Simply import `spritz.js`, then instantiate it.
 
 ```javascript
 // import Spritz
@@ -65,7 +77,24 @@ const instance = Spritz({
 instance.init()
 ```
 
-Options passed to the constructor are detailed below.
+### Without ES6
+
+Simply include `spritz.min.js` into your project, then instantiate it. This can be done either by using the jsDelivr CDN, or by including it from the `dist` folder. 
+
+```html
+<!-- include spritz.min.js -->
+<script src="path/to/spritz.min.js"></script>
+```
+
+```javascript
+// create an instance
+var instance = Spritz({
+	// Your options here
+})
+	
+// basic usage: build & load the sprite
+instance.init()
+```
 
 ## Options
 
@@ -373,11 +402,13 @@ instance.isMaskingSupported()
 
 ## Browser Support
 
+> **TESTING IN PROGRESS** - **YET NOT COMPATIBLE WITH IE8**
+
 Spritz is fully supported by **Evergreen Browsers** such as: IE 10+, Opera, Safari, Firefox & Chrome. Graceful degradation support has also been implemented on the following:
 
-* IE 8+ // Testing in progress
-* iOS Safari // Testing in progress
-* Android Browser // Testing in progress
+* IE 8+
+* iOS Safari
+* Android Browser
 
 **Notes about support:**
 
