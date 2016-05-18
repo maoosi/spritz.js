@@ -101,7 +101,6 @@ const build = () => {
 		.pipe(header(attribution, { pkg: packageJSON }))
 		.pipe(sourcemaps.write('./', { addComment: false }))
 		.pipe(gulp.dest(folders.dist))
-		.pipe(sync.stream())
 }
 
 bundler.on('update', build)

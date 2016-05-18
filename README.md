@@ -20,14 +20,13 @@ Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
 ## Work in progress
 
 * [ ] Testing
-* [ ] Accessibility support (WCAG 2.0, ARIA, screen readers)
 * [ ] Publish on NPM
 * [ ] Publish on JSDelivr
 * [ ] Demo samples on Codepen
 * [ ] Animated transitions between steps (incl. FPS and easing options)
 * [ ] Debug mode with detailed console outputs
 * [ ] Errors management
-* [ ] Options: Mobile (enable / disable proxy for mobile devices), From (first step / frame to consider), To (last step / frame to consider)
+* [ ] Options: From (first step / frame to consider), To (last step / frame to consider)
 * [ ] API / Events: Start (start loop animation), Stop (stop loop animation), Flip (flip the sprite), Range (change the current range of steps / frames to consider) ...
 
 ## Getting Started
@@ -117,8 +116,7 @@ Spritz({
 	breakpoint: 640,
 	mask: 'path/to/sprite-alpha.png',
 	proxy: false,
-	ariaTitle: 'Sprite image',
-	ariaDescription: 'Sprite image used for presentation purpose'
+	ariaLabel: 'Sprite image used for presentation purpose'
 })
 ```    
 
@@ -289,6 +287,19 @@ Spritz({
 })
 ```
 
+### Aria Label (optional, default: "Sprite image used for presentation purpose")
+
+Define the **label used by screen readers**. This is just a simple descriptive sentence, explaining what your sprite shows to the user, so it can be read by assistive technology.
+
+**Default:** "Sprite image used for presentation purpose"
+
+```javascript
+Spritz({
+	ariaLabel: 'Sprite image used for presentation purpose',
+	// ...
+})
+```
+
 ## API / Events
 
 Spritz exposes the following methods, and corresponding events:
@@ -299,6 +310,7 @@ Spritz exposes the following methods, and corresponding events:
 * [destroy](#destroy)
 * [changeStep](#changestepstep)
 * [changeProgress](#changeprogressprogressvalue)
+* [flip](#flip)
 * [getCurrentStep](#getcurrentstep)
 * [isMaskingSupported](#ismaskingsupported)
 
@@ -396,6 +408,20 @@ instance.changeProgress(0.2)
 
 // 'change' is emitted AFTER the sprite step has been changed
 instance.on('change', () => {
+  // ...
+})
+```
+
+### .flip()
+
+Used to _flip the sprite / horizontally mirror the sprite_.
+
+```javascript
+// flip the sprite
+instance.flip()
+
+// 'flip' is emitted AFTER the sprite has been mirrored
+instance.on('flip', () => {
   // ...
 })
 ```

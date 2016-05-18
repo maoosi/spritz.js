@@ -26,8 +26,7 @@ export default (options = {}) => {
         mask: options.mask || false,
         proxy: options.proxy || false,
 
-        ariaTitle: options.ariaTitle || 'Sprite image',
-        ariaDescription: options.ariaDescription || 'Sprite image used for presentation purpose'
+        ariaLabel: options.ariaLabel || 'Sprite image used for presentation purpose'
     }
 
 
@@ -96,7 +95,8 @@ export default (options = {}) => {
         changeProgress: changeProgress,
         animateStep: animateStep,
         getCurrentStep: getCurrentStep,
-        isMaskingSupported: isMaskingSupported
+        isMaskingSupported: isMaskingSupported,
+        flip: flip
     })
 
     return instance
@@ -144,6 +144,7 @@ export default (options = {}) => {
             document
                 .querySelector(settings.container)
                 .appendChild(htmlNode)
+
             htmlNode.appendChild(bgNode)
         }
     }
@@ -168,29 +169,11 @@ export default (options = {}) => {
 
     // Generate accessibility tags
     function _generateAccessibility () {
-        // Proxy node
-        if (proxyNode !== null) {
-            proxyNode.setAttribute('role', 'img')
-            proxyNode.setAttribute('aria-label', settings.ariaDescription)
-        }
-
-        // Svg node
-        if (svgNode !== null) {
-            svgNode.setAttribute('role', 'img')
-            svgNode.setAttribute('aria-label', settings.ariaDescription)
-        }
-
-        // Html node
         if (htmlNode !== null) {
-            htmlNode.setAttribute('aria-hidden', 'true')
-            htmlNode.setAttribute('role', 'presentation')
-            htmlNode.setAttribute('tabindex', '-1')
-        }
-
-        // Bg node
-        if (bgNode !== null) {
-            bgNode.setAttribute('role', 'img')
-            bgNode.setAttribute('aria-label', settings.ariaDescription)
+            htmlNode.setAttribute('role', 'img')
+            htmlNode.setAttribute('aria-label', settings.ariaLabel)
+            htmlNode.setAttribute('tabindex', '0')
+            htmlNode.setAttribute('aria-hidden', 'false')
         }
     }
 
@@ -229,7 +212,7 @@ export default (options = {}) => {
         if (_canUseSVG() && settings.mask !== false && svgNode === null) {
             let svgMask =
             `
-            <svg id="spritz-svg-${uniqid}" preserveAspectRatio="xMinYMin" width="100%" height="100%" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" role="img" aria-labelledby="title-svg-${uniqid} desc-svg-${uniqid}" viewBox="0 0 ${sprite.width} ${sprite.height}">
+            <svg id="spritz-svg-${uniqid}" preserveAspectRatio="xMinYMin" width="100%" height="100%" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${sprite.width} ${sprite.height}">
                 <title id="title-svg-${uniqid}">${settings.ariaTitle}</title>
                 <desc id="desc-svg-${uniqid}">${settings.ariaDescription}</desc>
                 <defs>
@@ -441,16 +424,22 @@ export default (options = {}) => {
     // Initiate the instance
     function init (initial = null) {
         if (initial !== null) settings.initial = initial
-        _runSeries(__init).then(function () {
+        return _runSeries(__init).then(function () {
             return instance.emit('init')
         })
     }
 
     // Create the sprite structure
     function build () {
-        _runSeries(__build).then(function () {
+        return _runSeries(__build).then(function () {
             return instance.emit('build')
         })
+    }
+
+    // Flip the sprite / horizontal mirror
+    function flip () {
+        htmlNode.classList.toggle('flip--true')
+        return instance.emit('flip')
     }
 
     // Destroy completely the sprite and restore initial state
