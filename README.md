@@ -181,7 +181,7 @@ Spritz({
 
 ### Container (optional, default: "body")
 
-Specify the **container** to use for the sprite element.
+Specify the **container** to use for the sprite element. It accepts both string selectors (.classname / #idname), and DOM objects.
 
 **Default:** "body"
 
@@ -460,7 +460,7 @@ Spritz is fully supported by **Evergreen Browsers** such as: IE 10+, Opera, Safa
 
 * There is known issue with **Safari** and SVG's that makes rendering very slow. Thereby, masking is disabled for Safari.
 * In order to limit data usage on **mobile devices**, proxy replacement has been disabled by default.
-* **IE 8** uses render fallbacks and doens't support SVG's. (For SVG support on IE 8, you can include the following polyfill into your project: https://code.google.com/archive/p/svgweb/)
+* **IE 8** uses render fallbacks and doesn't support SVG's. (For SVG support on IE 8, you can include the following polyfill into your project: https://code.google.com/archive/p/svgweb/)
 
 ## License
 

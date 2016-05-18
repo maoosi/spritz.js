@@ -138,12 +138,17 @@ export default (options = {}) => {
         if (htmlNode === null) {
             htmlNode = document.createElement('div')
             bgNode = document.createElement('div')
+
             bgNode.setAttribute('id', 'spritz-bg-' + uniqid + '')
             htmlNode.setAttribute('id', 'spritz-' + uniqid + '')
 
-            document
-                .querySelector(settings.container)
-                .appendChild(htmlNode)
+            if (typeof settings.container === 'object') {
+                settings.container.appendChild(htmlNode)
+            } else {
+                document
+                    .querySelector(settings.container)
+                    .appendChild(htmlNode)
+            }
 
             htmlNode.appendChild(bgNode)
         }
