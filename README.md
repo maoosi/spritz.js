@@ -23,11 +23,9 @@ Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
 * [ ] Demo samples on Codepen
 * [ ] Publish on NPM
 * [ ] Publish on JSDelivr
-* [ ] Animated transitions between steps (incl. FPS and easing options)
 * [ ] Debug mode with detailed console outputs
 * [ ] Errors management
 * [ ] Options: From (first step / frame to consider), To (last step / frame to consider)
-* [ ] API / Events: Start (start loop animation), Stop (stop loop animation), Range (change the current range of steps / frames to consider) ...
 
 ## Getting Started
 
@@ -308,6 +306,8 @@ Spritz exposes the following methods, and corresponding events:
 * [load](#load)
 * [build](#build)
 * [destroy](#destroy)
+* [start](#start)
+* [stop](#stop)
 * [changeStep](#changestepstep)
 * [changeProgress](#changeprogressprogressvalue)
 * [flip](#flip)
@@ -368,6 +368,42 @@ instance.destroy()
 
 // 'destroy' is emitted AFTER the sprite has been destroyed
 instance.on('destroy', () => {
+  // ...
+})
+```
+
+### .start(direction, fps)
+
+Used to _start sprite loop animation_. Useful for playing infinite loop animations.
+
+**Parameters:**
+
+* direction (string): "forwards" OR "backwards". Default: "forwards"
+* fps (integer): frames per second. Default: 12
+
+```javascript
+// start loop animation with default parameters
+instance.start()
+
+// start loop animation 'backwards', 25 fps
+instance.start('backwards', 25)
+
+// 'start' is emitted AFTER the animation has started
+instance.on('start', () => {
+  // ...
+})
+```
+
+### .stop()
+
+Used to _stop sprite loop animation_.
+
+```javascript
+// stop loop animation
+instance.stop()
+
+// 'stop' is emitted AFTER the animation loop has stopped
+instance.on('stop', () => {
   // ...
 })
 ```

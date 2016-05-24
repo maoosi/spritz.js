@@ -49,6 +49,7 @@ export default (options = {}) => {
         ratio: null
     }
     let currentStep = settings.initial
+    let frameRequest = null
 
 
     /**
@@ -85,6 +86,8 @@ export default (options = {}) => {
         destroy: destroy,
         changeStep: changeStep,
         changeProgress: changeProgress,
+        start: start,
+        stop: stop,
         animateStep: animateStep,
         getCurrentStep: getCurrentStep,
         isMaskingSupported: isMaskingSupported,
@@ -421,6 +424,44 @@ export default (options = {}) => {
         }
     }
 
+    // Frame animation
+    function _requestAnimation (interval, step = 'next', lastTime = 0, easing = false, timeElapsed = null, startStep = null, endStep = null, timeTotal = null) {
+        frameRequest = window.requestAnimationFrame(function (timestamp) {
+            _loopAnimation(interval, step, timestamp, lastTime, easing, timeElapsed, startStep, endStep, timeTotal)
+        })
+    }
+
+    // Loop animation
+    function _loopAnimation (interval, step, timestamp, lastTime, easing, timeElapsed, startStep, endStep, timeTotal) {
+        let update = timestamp - lastTime >= interval
+
+        if (update) {
+            let nextStep
+
+            if (easing !== false) {
+                nextStep = easing(null, timeElapsed, startStep, endStep, timeTotal)
+                timeElapsed += interval
+
+                if (nextStep >= endStep) {
+                    changeStep(endStep, true)
+                    stop(true)
+                    return
+                } else {
+                    nextStep = Math.round(nextStep)
+                }
+            } else {
+                nextStep = step
+            }
+
+            console.log(nextStep)
+
+            changeStep(nextStep)
+            lastTime = timestamp
+        }
+
+        _requestAnimation(interval, step, lastTime, easing, timeElapsed, startStep, endStep, timeTotal)
+    }
+
 
     /**
     * Public methods
@@ -467,6 +508,7 @@ export default (options = {}) => {
         mainNode.parentNode.removeChild(mainNode)
         imageNode = fallbackNode = mainNode = svgNode = proxyNode = proxyTimeout = null
         proxyImagesList = []
+        stop(true)
         instance.emit('destroy')
         return this
     }
@@ -492,13 +534,13 @@ export default (options = {}) => {
     }
 
     // Change the current frame/step (no animation)
-    function changeStep (step = 1) {
+    function changeStep (step = 1, silent = false) {
         if (mainNode != null && imageNode != null) {
             // Hide the proxy
             _hideProxy()
 
             // If next or previous step
-            step = (step === 'next') ? _nextStep : (step === 'previous') ? _prevStep : step
+            step = (step === 'next') ? _nextStep() : (step === 'previous') ? _prevStep() : step
 
             // Step & rows values, starting from 0
             let stepZero = step - 1
@@ -513,6 +555,7 @@ export default (options = {}) => {
             if (svgNode !== null) {
                 positionX = (positionX * columnsZero / 100) * sprite.width
                 positionY = (positionY * rowsZero / 100) * sprite.height
+
                 svgNode.setAttribute(
                     'viewBox', '' + positionX + ' ' + positionY + ' ' + sprite.width + ' ' + sprite.height + ''
                 )
@@ -530,7 +573,7 @@ export default (options = {}) => {
             }, 500)
 
             // Emit changed
-            instance.emit('change')
+            if (silent === false) instance.emit('change')
         }
         return this
     }
@@ -541,8 +584,58 @@ export default (options = {}) => {
         return changeStep(stepEquiv === 0 ? stepEquiv + 1 : stepEquiv)
     }
 
+    // Start loop animation
+    function start (direction = 'forward', fps = 12) {
+        let interval = 1000 / fps
+        _requestAnimation(interval, direction === 'forward' ? 'next' : 'previous')
+        instance.emit('start')
+        return this
+    }
+
+    // Stop loop animation
+    function stop (silent = false) {
+        if (frameRequest !== null) {
+            window.cancelAnimationFrame(frameRequest)
+            frameRequest = null
+            if (silent === false) instance.emit('stop')
+        }
+        return this
+    }
+
     // Update current frame/step (animated)
     function animateStep (step, fps = 12, easing = 'ease') {
-        // TODO
+        let interval = 1000 / fps
+
+        // direction
+        let direction = 'next'
+        let timeTotal = (step - currentStep) * interval
+        if (step < currentStep) {
+            direction = 'previous'
+            timeTotal = (currentStep - step) * interval
+        }
+
+        // t: current time, b: begInnIng value, c: change In value, d: duration
+        if (easing === 'ease' || easing === 'easeInOut') {
+            // easeInOutCubic
+            easing = function (x, t, b, c, d) {
+                if ((t /= d / 2) < 1) return c / 2 * t * t * t + b
+                return c / 2 * ((t -= 2) * t * t + 2) + b
+            }
+        } else if (easing === 'easeIn') {
+            // easeInCubic
+            easing = function (x, t, b, c, d) {
+                return c * (t /= d) * t * t + b
+            }
+        } else if (easing === 'easeOut') {
+            // easeOutCubic
+            easing = function (x, t, b, c, d) {
+                return c * ((t = t / d - 1) * t * t + 1) + b
+            }
+        }
+
+        // requestAnimation
+        _requestAnimation(interval, direction, 0, easing, interval, currentStep, step, timeTotal)
+        instance.emit('animate')
+        return this
     }
 }
