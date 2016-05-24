@@ -65,7 +65,7 @@
                 height: 3096,
 
                 flip: false,
-                responsive: false,
+                fluid: true,
 
                 src: 'sprites/JPG-quality30-scale75.jpg',
                 mask: 'sprites/PNG-8bits-scale100-inset.png',
@@ -96,7 +96,7 @@
 
 			// Display sprite
 			sprite.on('load', function() {
-				sprite.build()
+				sprite.build().flip(true)
 			})
 
             // On click init button

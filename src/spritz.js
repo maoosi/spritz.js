@@ -1,6 +1,5 @@
 import 'classlist.js' // Cross-browser element.classList - https://github.com/eligrey/classList.js/
 import knot from 'knot.js' // A browser-based event emitter - https://github.com/callmecavs/knot.js
-import shortid from 'shortid' // Short id generator - https://github.com/dylang/shortid
 import debounce from 'lodash.debounce' // Debounce function - https://lodash.com/docs#debounce
 
 export default (options = {}) => {
@@ -19,7 +18,7 @@ export default (options = {}) => {
         height: options.height,
 
         flip: options.flip || false,
-        responsive: options.responsive || false,
+        displayMode: options.displayMode || 'fluid',
         breakpoint: options.breakpoint || 640,
 
         src: options.src,
@@ -31,33 +30,25 @@ export default (options = {}) => {
 
 
     /**
-    * Useful constants
-    */
-
-    const uniqid = shortid.generate()
-
-
-    /**
     * Local variables
     */
 
     let imageNode = null
-    let styleNode = null
-    let htmlNode = null
+    let mainNode = null
     let svgNode = null
     let proxyNode = null
-    let bgNode = null
+    let fallbackNode = null
 
     let proxyImagesList = []
     let proxyTimeout = null
     let backgroundSize = null
     let sprite = {
         columns: null,
-        padding: null,
         width: null,
-        height: null
+        height: null,
+        ratio: null
     }
-    let currentStep = null
+    let currentStep = settings.initial
 
 
     /**
@@ -66,13 +57,14 @@ export default (options = {}) => {
 
     const __build = [
         _calculations,
-        _generateDOM,
-        _generateMask,
-        _generateCSS,
-        _applySettingsClasses,
-        _generateAccessibility,
+        _generateMain,
+        _generateSVG,
+        _generateProxy,
+        _accessibility,
         _bindEvents,
-        _defaultStep
+        _defaultStep,
+        _generateCSS,
+        flip
     ]
 
     const __init = [
@@ -103,15 +95,70 @@ export default (options = {}) => {
 
 
     /**
-    * Private methods
+    * Private helper functions
     */
 
     // Run a serie of functions
-    function _runSeries (functions) {
+    function __runSeries (functions) {
         return new Promise(function (resolve, reject) {
             resolve(functions.forEach(func => func()))
         })
     }
+
+    // Convert and return the input to camelCase
+    function __camelize (str) {
+        return str.replace(/(\-[a-z])/g, function ($1) {
+            return $1.toUpperCase().replace('-', '')
+        })
+    }
+
+    // Prefix a CSS property
+    function __prefixCss (element, property, value) {
+        let capitalizedProperty = property.charAt(0).toUpperCase() + property.slice(1)
+        element.style['webkit' + capitalizedProperty] = value
+        element.style['moz' + capitalizedProperty] = value
+        element.style['ms' + capitalizedProperty] = value
+        element.style['o' + capitalizedProperty] = value
+        element.style[property] = value
+    }
+
+    // Apply multiple dom attributes at once
+    function __setAttributes (element, attributes) {
+        if (element !== null) {
+            for (let attribute in attributes) {
+                element.setAttribute(attribute, attributes[attribute])
+            }
+        }
+    }
+
+    // Apply multiple CSS rules at once
+    function __setCss (element, rules) {
+        if (element !== null) {
+            for (let rule in rules) {
+                if (rule === 'transform') {
+                    __prefixCss(element, 'transform', rules[rule])
+                } else {
+                    element.style[__camelize(rule)] = rules[rule]
+                }
+            }
+        }
+    }
+
+    // Apply multiple CSS rules on multiple elements
+    function __css (elements, rules) {
+        if (elements !== null && elements.constructor === Array) {
+            for (let i = 0; i < elements.length; i++) {
+                __setCss(elements[i], rules)
+            }
+        } else {
+            __setCss(elements, rules)
+        }
+    }
+
+
+    /**
+    * Private methods
+    */
 
     // Sprite calculations
     function _calculations () {
@@ -129,28 +176,22 @@ export default (options = {}) => {
         sprite.height = settings.height / settings.rows
         sprite.height = (Math.round((sprite.height * 1000) / 10) / 100).toFixed(2)
 
-        // sprite padding used for responsive
-        sprite.padding = ((sprite.height * 100) * 100 / (sprite.width * 100))
+        // sprite ratio used for fluid display
+        sprite.ratio = sprite.width / sprite.height
     }
 
-    // Generate the DOM
-    function _generateDOM () {
-        if (htmlNode === null) {
-            htmlNode = document.createElement('div')
-            bgNode = document.createElement('div')
-
-            bgNode.setAttribute('id', 'spritz-bg-' + uniqid + '')
-            htmlNode.setAttribute('id', 'spritz-' + uniqid + '')
+    // Generate the main DOM
+    function _generateMain () {
+        if (mainNode === null) {
+            mainNode = document.createElement('div')
+            fallbackNode = document.createElement('div')
+            mainNode.appendChild(fallbackNode)
 
             if (typeof settings.container === 'object') {
-                settings.container.appendChild(htmlNode)
+                settings.container.appendChild(mainNode)
             } else {
-                document
-                    .querySelector(settings.container)
-                    .appendChild(htmlNode)
+                document.querySelector(settings.container).appendChild(mainNode)
             }
-
-            htmlNode.appendChild(bgNode)
         }
     }
 
@@ -168,75 +209,56 @@ export default (options = {}) => {
     function _viewportResize () {
         return debounce(function (event) {
             settings.initial = currentStep
+            _unbindEvents()
             build()
         }, 500)
     }
 
     // Generate accessibility tags
-    function _generateAccessibility () {
-        if (htmlNode !== null) {
-            htmlNode.setAttribute('role', 'img')
-            htmlNode.setAttribute('aria-label', settings.ariaLabel)
-            htmlNode.setAttribute('tabindex', '0')
-            htmlNode.setAttribute('aria-hidden', 'false')
-        }
+    function _accessibility () {
+        __setAttributes(mainNode, {
+            'role': 'img',
+            'aria-label': settings.ariaLabel,
+            'tabindex': '0',
+            'aria-hidden': 'false'
+        })
     }
 
-    // Apply classes according user settings
-    function _applySettingsClasses () {
-        if (htmlNode !== null) {
-            // Responsive
-            if (settings.responsive === true) {
-                htmlNode.classList.remove('rwd--false')
-                htmlNode.classList.add('rwd--true')
-            } else {
-                htmlNode.classList.remove('rwd--true')
-                htmlNode.classList.add('rwd--false')
-            }
-
-            // Flip
-            if (settings.flip === true) {
-                htmlNode.classList.remove('flip--false')
-                htmlNode.classList.add('flip--true')
-            } else {
-                htmlNode.classList.remove('flip--true')
-                htmlNode.classList.add('flip--false')
-            }
-
-            // No Svg support
-            if (svgNode === null) {
-                htmlNode.classList.remove('svg--true')
-            } else {
-                htmlNode.classList.add('svg--true')
-            }
+    // Generate the proxy dom
+    function _generateProxy () {
+        if (proxyNode === null) {
+            proxyNode = document.createElement('div')
+            mainNode.appendChild(proxyNode)
         }
     }
 
     // Generate the JPG/PNG mask using SVG
-    function _generateMask () {
+    function _generateSVG () {
         if (_canUseSVG() && settings.mask !== false && svgNode === null) {
-            let svgMask =
-            `
-            <svg id="spritz-svg-${uniqid}" preserveAspectRatio="xMinYMin" width="100%" height="100%" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${sprite.width} ${sprite.height}">
-                <title id="title-svg-${uniqid}">${settings.ariaTitle}</title>
-                <desc id="desc-svg-${uniqid}">${settings.ariaDescription}</desc>
-                <defs>
+            svgNode = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+            svgNode.innerHTML =
+                `<defs>
                     <mask id="spritzTopMask">
-                        <image width="${settings.width}" height="${settings.height}" role="presentation" xlink:href="${settings.mask}"></image>
+                        <image width="${settings.width}" height="${settings.height}" xlink:href="${settings.mask}"></image>
                     </mask>
                 </defs>
-                <image mask="url(#spritzTopMask)" id="spritzTop" role="presentation" width="${settings.width}" height="${settings.height}" xlink:href="${settings.src}"></image>
-            </svg>
-            `
-
-            bgNode.insertAdjacentHTML('afterend', svgMask)
-            svgNode = document.querySelector('#spritz-svg-' + uniqid + '')
+                <image mask="url(#spritzTopMask)" id="spritzTop" width="${settings.width}" height="${settings.height}" xlink:href="${settings.src}"></image> `
+            __setAttributes(svgNode, {
+                'preserveAspectRatio': 'xMinYMin',
+                'width': '100%',
+                'height': '100%',
+                'version': '1.1',
+                'xmlns:xlink': 'http://www.w3.org/1999/xlink',
+                'viewBox': '0 0 ' + sprite.width + ' ' + sprite.height + ''
+            })
+            mainNode.appendChild(svgNode)
         }
     }
 
     // Return true if SVG Mask can be used by the browser
     function _canUseSVG () {
-        // SVG Masking disabled for Safari (http://stackoverflow.com/questions/31384271/safari-unreasonably-slow-rendering-svg-files)
+        // SVG Masking disabled for Safari
+        // (http://stackoverflow.com/questions/31384271/safari-unreasonably-slow-rendering-svg-files)
         if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent) === true) {
             return false
         }
@@ -252,109 +274,101 @@ export default (options = {}) => {
 
     // Generate the CSS
     function _generateCSS () {
-        if (styleNode === null && imageNode != null) {
-            let css =
-            `
-            /* == Sprite base css == */
-            #spritz-${uniqid} {
-                overflow: hidden;
-                outline: 0;
-            }
-            #spritz-bg-${uniqid} {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: url('${imageNode.src}') no-repeat 0 0%;
-                background-size: ${backgroundSize}%;
-                background-position: 0 0;
-            }
+        // Generic rules
+        __css(mainNode, {
+            'overflow': 'hidden',
+            'outline': '0'
+        })
+        __css(fallbackNode, {
+            'position': 'absolute',
+            'top': '0',
+            'left': '0',
+            'width': '100%',
+            'height': '100%',
+            'background-size': '' + backgroundSize + '%',
+            'background-position': '0 0',
+            'background-repeat': 'no-repeat'
+        })
+        __css(svgNode, {
+            'position': 'absolute',
+            'top': '0',
+            'left': '0',
+            'opacity': '1'
+        })
+        __css(proxyNode, {
+            'position': 'absolute',
+            'left': '-9999px',
+            'top': '0',
+            'width': '100%',
+            'height': '100%',
+            'opacity': '0',
+            'background-repeat': 'no-repeat',
+            'background-size': '100%',
+            'background-position': '0 0'
+        })
 
-            /* == SVG Masking == */
-            #spritz-svg-${uniqid} {
-                position: absolute;
-                top: 0;
-                left: 0;
-                opacity: 0;
-            }
-            #spritz-${uniqid}.svg--true #spritz-bg-${uniqid} {
-                opacity: 0;
-            }
-            #spritz-${uniqid}.svg--true #spritz-svg-${uniqid} {
-                opacity: 1;
-            }
-
-            /* == Responsive mode == */
-            #spritz-${uniqid}.rwd--true {
-                position: relative;
-                width: 100%;
-            }
-            #spritz-${uniqid}.rwd--true::after {
-                content: '';
-                display: block;
-                padding-bottom: ${sprite.padding}%;
-            }
-
-            /* == Non-responsive mode == */
-            #spritz-${uniqid}.rwd--false {
-                position: absolute;
-                left: 50%;
-                top: 50%;
-                -webkit-transform: translate(-50%, -50%);
-                -moz-transform: translate(-50%, -50%);
-                -ms-transform: translate(-50%, -50%);
-                -o-transform: translate(-50%, -50%);
-                transform: translate(-50%, -50%);
-                width: ${sprite.width}px;
-                height: ${sprite.height}px;
-            }
-
-            /* == Proxy == */
-            #spritz-proxy-${uniqid} {
-                position: absolute;
-                left: -9999px;
-                top: 0;
-                width: 100%;
-                height: 100%;
-                opacity: 0;
-                background-repeat: no-repeat;
-                background-size: 100%;
-                background-position: 0 0;
-            }
-            #spritz-${uniqid}.proxy--visible #spritz-svg-${uniqid},
-            #spritz-${uniqid}.proxy--visible #spritz-bg-${uniqid} {
-                transition: opacity 0.6s linear 0.7s;
-                opacity: 0;
-            }
-            #spritz-${uniqid}.proxy--visible #spritz-proxy-${uniqid} {
-                transition: opacity 0.6s linear 0.1s;
-                opacity: 1;
-                left: 0;
-            }
-
-            /* == Flip == */
-            #spritz-${uniqid}.flip--true #spritz-proxy-${uniqid},
-            #spritz-${uniqid}.flip--true #spritz-bg-${uniqid},
-            #spritz-${uniqid}.flip--true #spritz-svg-${uniqid} {
-                -webkit-transform: scaleX(-1);
-                -moz-transform: scaleX(-1);
-                -ms-transform: scaleX(-1);
-                -o-transform: scaleX(-1);
-                transform: scaleX(-1);
-                filter: fliph();
-                -ms-filter: 'FlipH';
-            }
-            `
-
-            // create style node
-            styleNode = document.createElement('style')
-            styleNode.innerHTML = css
-            styleNode.appendChild(document.createTextNode('')) // WebKit hack
-
-            // append style element to the head
-            document.head.appendChild(styleNode)
+        // Conditional rules
+        if (settings.displayMode === 'fluid') {
+            __css(mainNode, {
+                'position': 'relative',
+                'width': '100%',
+                'height': '' + (mainNode.parentNode.offsetWidth / sprite.ratio) + 'px'
+            })
+        } else {
+            __css(mainNode, {
+                'position': 'absolute',
+                'left': '50%',
+                'top': '50%',
+                'transform': 'translate(-50%, -50%)',
+                'width': '' + sprite.width + 'px',
+                'height': '' + sprite.height + 'px'
+            })
         }
+        if (imageNode !== null) {
+            __css(fallbackNode, {
+                'background-image': 'url("' + imageNode.src + '")'
+            })
+        }
+        if (svgNode !== null) {
+            __css(fallbackNode, {
+                'opacity': '0'
+            })
+        }
+    }
+
+    // Show proxy CSS rules
+    function _showProxy () {
+        __css([svgNode, fallbackNode], {
+            'transition': 'opacity 0.6s linear 0.7s',
+            'opacity': '0'
+        })
+
+        __css(proxyNode, {
+            'transition': 'opacity 0.6s linear 0.1s',
+            'opacity': '1',
+            'left': '0'
+        })
+    }
+
+    // Hide proxy CSS rules
+    function _hideProxy () {
+        if (svgNode !== null) {
+            __css(svgNode, {
+                'transition': 'none',
+                'opacity': '1'
+            })
+        } else {
+            __css(fallbackNode, {
+                'transition': 'none',
+                'opacity': '1'
+            })
+        }
+
+        __css(proxyNode, {
+            'transition': 'none',
+            'opacity': '0',
+            'left': '-9999px'
+        })
     }
 
     // Load and cache the proxy image
@@ -386,32 +400,18 @@ export default (options = {}) => {
     // Replace the current step by it's HD replacement, only if it exists
     function _proxy (step) {
         // Check if the proxy frame has been defined by the user
-        if (typeof settings.proxy[step] === 'undefined') {
-            return
-        }
+        if (typeof settings.proxy[step] === 'undefined') { return }
 
         // Disable for mobile devices
         let viewportWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth
-        if (settings.breakpoint !== false && viewportWidth < settings.breakpoint) {
-            return
-        }
-
-        // If the proxy dom element doesn't exist, we create it !
-        if (proxyNode === null) {
-            proxyNode = document.createElement('div')
-            htmlNode
-                .appendChild(proxyNode)
-                .setAttribute('id', 'spritz-proxy-' + uniqid + '')
-        }
+        if (settings.breakpoint !== false && viewportWidth < settings.breakpoint) { return }
 
         // If the proxy dom element exists, we can load the proxy image
         if (proxyNode !== null) {
             let proxySrc = settings.proxy[step]
             _loadProxyImage(proxySrc).then(function (proxyImage) {
-                proxyNode.style.backgroundImage = 'url("' + proxyImage.getAttribute('src') + '")'
-                proxyNode.style.left = '-9999px'
-
-                htmlNode.classList.add('proxy--visible')
+                __css(proxyNode, {'background-image': 'url("' + proxyImage.getAttribute('src') + '")'})
+                _showProxy()
 
                 // IE Fix for rendering
                 setTimeout(function () {
@@ -429,46 +429,56 @@ export default (options = {}) => {
     // Initiate the instance
     function init (initial = null) {
         if (initial !== null) settings.initial = initial
-        return _runSeries(__init).then(function () {
-            return instance.emit('init')
+        __runSeries(__init).then(function () {
+            instance.emit('init')
         })
+        return this
     }
 
     // Create the sprite structure
     function build () {
-        return _runSeries(__build).then(function () {
-            return instance.emit('build')
+        __runSeries(__build).then(function () {
+            instance.emit('build')
         })
+        return this
     }
 
     // Flip the sprite / horizontal mirror
-    function flip () {
-        htmlNode.classList.toggle('flip--true')
-        return instance.emit('flip')
+    function flip (doFlip = settings.flip) {
+        if (doFlip === true) {
+            __css([fallbackNode, proxyNode, svgNode], {
+                'transform': 'scaleX(-1)',
+                'filter': 'fliph()',
+                '-ms-filter': 'FlipH'
+            })
+        } else {
+            __css([fallbackNode, proxyNode, svgNode], {
+                'transform': 'none',
+                'filter': 'none',
+                '-ms-filter': 'none'
+            })
+        }
+        return this
     }
 
     // Destroy completely the sprite and restore initial state
     function destroy () {
         _unbindEvents()
-
-        styleNode.parentNode.removeChild(styleNode)
-        htmlNode.parentNode.removeChild(htmlNode)
-
-        imageNode = styleNode = bgNode = htmlNode = svgNode = proxyNode = proxyTimeout = null
+        mainNode.parentNode.removeChild(mainNode)
+        imageNode = fallbackNode = mainNode = svgNode = proxyNode = proxyTimeout = null
         proxyImagesList = []
-
-        return instance.emit('destroy')
+        instance.emit('destroy')
+        return this
     }
 
     // Load the sprite image
     function load () {
         if (imageNode === null) {
             imageNode = new Image()
-            imageNode.onload = function () {
-                return instance.emit('load')
-            }
+            imageNode.onload = function () { instance.emit('load') }
             imageNode.src = settings.src
         }
+        return this
     }
 
     // Return true if SVG Masking is supported
@@ -483,19 +493,12 @@ export default (options = {}) => {
 
     // Change the current frame/step (no animation)
     function changeStep (step = 1) {
-        if (styleNode != null && htmlNode != null && imageNode != null) {
+        if (mainNode != null && imageNode != null) {
             // Hide the proxy
-            htmlNode.classList.remove('proxy--visible')
+            _hideProxy()
 
-            // If next step
-            if (step === 'next') {
-                step = _nextStep()
-            }
-
-            // If prev step
-            if (step === 'previous') {
-                step = _prevStep()
-            }
+            // If next or previous step
+            step = (step === 'next') ? _nextStep : (step === 'previous') ? _prevStep : step
 
             // Step & rows values, starting from 0
             let stepZero = step - 1
@@ -510,9 +513,11 @@ export default (options = {}) => {
             if (svgNode !== null) {
                 positionX = (positionX * columnsZero / 100) * sprite.width
                 positionY = (positionY * rowsZero / 100) * sprite.height
-                svgNode.setAttribute('viewBox', '' + positionX + ' ' + positionY + ' ' + sprite.width + ' ' + sprite.height + ' ')
+                svgNode.setAttribute(
+                    'viewBox', '' + positionX + ' ' + positionY + ' ' + sprite.width + ' ' + sprite.height + ''
+                )
             } else {
-                bgNode.style.backgroundPosition = '' + positionX + '% ' + positionY + '%'
+                fallbackNode.style.backgroundPosition = '' + positionX + '% ' + positionY + '%'
             }
 
             // Save current step
@@ -525,15 +530,15 @@ export default (options = {}) => {
             }, 500)
 
             // Emit changed
-            return instance.emit('change')
+            instance.emit('change')
         }
+        return this
     }
 
     // Set a progress value: 0 = first step / 1 = last step
     function changeProgress (progressValue = 0) {
         let stepEquiv = Math.round(progressValue * 100 * settings.steps / 100)
-        if (stepEquiv === 0) stepEquiv++
-        return changeStep(stepEquiv)
+        return changeStep(stepEquiv === 0 ? stepEquiv + 1 : stepEquiv)
     }
 
     // Update current frame/step (animated)
