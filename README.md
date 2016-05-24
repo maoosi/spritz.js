@@ -306,7 +306,7 @@ Spritz exposes the following methods, and corresponding events:
 * [load](#load)
 * [build](#build)
 * [destroy](#destroy)
-* [start](#start)
+* [start](#startdirection-fps)
 * [stop](#stop)
 * [changeStep](#changestepstep)
 * [changeProgress](#changeprogressprogressvalue)
