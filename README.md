@@ -9,7 +9,7 @@ A small, modern, dependency-free, **sprites animation library**.
 ## Features
 
 * **Accessible** - full support for screen readers
-* **Lightweight** - ~35KB minified
+* **Lightweight** - under 15KB minified and gzipped
 * **Responsive** - as you'd expect these days
 * **[Compatible](#browser-support)** - IE9+ support, mobile support
 * **[API / Events](#api--events)** - init, load, destroy, changeStep and more
@@ -20,14 +20,14 @@ Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
 ## Work in progress
 
 * [ ] Testing
+* [ ] Demo samples on Codepen
 * [ ] Publish on NPM
 * [ ] Publish on JSDelivr
-* [ ] Demo samples on Codepen
 * [ ] Animated transitions between steps (incl. FPS and easing options)
 * [ ] Debug mode with detailed console outputs
 * [ ] Errors management
 * [ ] Options: From (first step / frame to consider), To (last step / frame to consider)
-* [ ] API / Events: Start (start loop animation), Stop (stop loop animation), Flip (flip the sprite), Range (change the current range of steps / frames to consider) ...
+* [ ] API / Events: Start (start loop animation), Stop (stop loop animation), Range (change the current range of steps / frames to consider) ...
 
 ## Getting Started
 
@@ -41,7 +41,7 @@ Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
 
 > **TESTING IN PROGRESS** - **YET NOT PUBLISHED ON NPM AND JSDELIVR**
 
-### Using NPM 
+### Using NPM
 
 ```bash
 $ npm install spritz.js --save
@@ -78,7 +78,7 @@ instance.init()
 
 ### Without ES6
 
-Simply include `spritz.min.js` into your project, then instantiate it. This can be done either by using the jsDelivr CDN, or by including it from the `dist` folder. 
+Simply include `spritz.min.js` into your project, then instantiate it. This can be done either by using the jsDelivr CDN, or by including it from the `dist` folder.
 
 ```html
 <!-- include spritz.min.js -->
@@ -90,7 +90,7 @@ Simply include `spritz.min.js` into your project, then instantiate it. This can 
 var instance = Spritz({
 	// Your options here
 })
-	
+
 // basic usage: build & load the sprite
 instance.init()
 ```
@@ -112,7 +112,7 @@ Spritz({
 	container: '.selector',
 	initial: 1,
 	flip: false,
-	responsive: false,
+	displayMode: 'fluid',
 	breakpoint: 640,
 	mask: 'path/to/sprite-alpha.png',
 	proxy: false,
@@ -218,15 +218,15 @@ Spritz({
 })
 ```
 
-### Responsive (optional, default: false)
+### Display Mode (optional, default: "fluid")
 
-If set to true, instead of using its original sizes, the **sprite sizes will adapt to its container element**.
+Define the **display mode of the sprite**. If set to "fluid", the sprite will fit its container (similar to background-size contain in CSS). If set to "absolute", the sprite will keep its original size.
 
-**Default:** false
+**Default:** "fluid"
 
 ```javascript
 Spritz({
-	responsive: true,
+	displayMode: "absolute",
 	// ...
 })
 ```
@@ -311,10 +311,10 @@ Spritz exposes the following methods, and corresponding events:
 * [changeStep](#changestepstep)
 * [changeProgress](#changeprogressprogressvalue)
 * [flip](#flip)
-* [getCurrentStep](#getcurrentstep)
-* [isMaskingSupported](#ismaskingsupported)
+* [getCurrentStep](#getcurrentstep) (not chainable)
+* [isMaskingSupported](#ismaskingsupported) (not chainable)
 
-Note that **all methods, including those from the event emitter, are chainable**.
+Note that **all methods** *(Except the ones specified above)*, **including those from the event emitter, are chainable**.
 
 ### .init()
 
@@ -419,11 +419,6 @@ Used to _flip the sprite / horizontally mirror the sprite_.
 ```javascript
 // flip the sprite
 instance.flip()
-
-// 'flip' is emitted AFTER the sprite has been mirrored
-instance.on('flip', () => {
-  // ...
-})
 ```
 
 ### .getCurrentStep()
