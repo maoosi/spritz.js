@@ -453,8 +453,6 @@ export default (options = {}) => {
                 nextStep = step
             }
 
-            console.log(nextStep)
-
             changeStep(nextStep)
             lastTime = timestamp
         }

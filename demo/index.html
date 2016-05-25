@@ -96,9 +96,9 @@
 
 			// Display sprite
 			sprite.on('load', function() {
-				sprite.build(1).animateStep(18, 12, 'ease')
-				// sprite.build(18).animateStep(1, 12, 'ease')
-				// sprite.build().start()
+			    sprite.build().animateStep(18, 12, 'ease')
+				// sprite.build().changeStep(18).animateStep(1, 12, 'ease')
+				// sprite.build().start('forwards', 12)
 			})
 
             // On click init button

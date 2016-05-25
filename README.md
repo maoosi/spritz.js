@@ -4,9 +4,11 @@
 
 A small, modern, accessible, **sprites animation library**.
 
-**Can be used for:** 360 viewers, products animation, interactive experiences, html5 games...
+Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).
 
 ## Features
+
+**Can be used for:** 360 viewers, products animation, interactive experiences, html5 games...
 
 * **Accessible** - full support for screen readers
 * **Lightweight** - under 15KB minified and gzipped
@@ -56,6 +58,8 @@ $ npm install spritz.js --save
 Spritz was developed with a **modern JavaScript workflow** in mind. To use it, it's recommended you have a build system in place that can transpile ES6, and bundle modules.
 
 **If you don't have any ES6 workflow setup**, you can alternatively use the library in a more "classic" way, by including the minified version of the library into your project. For more details, please refer to the [Without ES6](#without-es6) example below.
+
+For more usage examples, please refer to [**Demo samples**](http://codepen.io/collection/XQZjMx/).
 
 ### ES6
 
