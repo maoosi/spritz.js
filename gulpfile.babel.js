@@ -29,7 +29,7 @@ import replace from 'gulp-replace';
 const folders = {
 	src: './src',
 	dist: './dist',
-	demo: './demo'
+	sandbox: './sandbox'
 }
 
 const library = {
@@ -125,7 +125,7 @@ const sendMaps = (req, res, next) => {
 
 const options = {
 	notify: false,
-	startPath: '/demo/',
+	startPath: '/sandbox/',
 	server: {
 		baseDir: '.',
 		middleware: [
@@ -144,7 +144,7 @@ gulp.task('server', () => setTimeout(function(){ sync(options) }, 1000))
 // WATCH
 
 gulp.task('watch', () => {
-    gulp.watch([folders.src + '/**/*', folders.demo + '/**/*'], ['js', reload])
+    gulp.watch([folders.src + '/**/*', folders.sandbox + '/**/*'], ['js', reload])
 })
 
 
