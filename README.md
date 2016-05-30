@@ -381,15 +381,15 @@ Used to _start sprite loop animation_. Useful for playing infinite loop animatio
 
 **Parameters:**
 
-* direction (string): "forwards" OR "backwards". Default: "forwards"
+* direction (string): "forward" OR "backward". Default: "forward"
 * fps (integer): frames per second. Default: 12
 
 ```javascript
 // start loop animation with default parameters
 instance.start()
 
-// start loop animation 'backwards', 25 fps
-instance.start('backwards', 25)
+// start loop animation 'backward', 25 fps
+instance.start('backward', 25)
 
 // 'start' is emitted AFTER the animation has started
 instance.on('start', () => {

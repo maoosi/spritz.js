@@ -41,14 +41,11 @@
 	</div>
 
     <div id="demo"></div>
-
     <script src="../dist/spritz.min.js"></script>
 
     <script>
-        // When page is loaded
 		document.addEventListener('DOMContentLoaded', function(event) {
 
-            // Sprite declaration
 			var sprite = Spritz({
                 container: '#demo',
 
@@ -84,14 +81,26 @@
                 }
             });
 
-			// Preloading sprite
             sprite.load();
 
-			// Display sprite
 			sprite.on('load', function() {
-			    sprite.build()
-				// sprite.build().animateStep(18, 12, 'ease')
-				// sprite.build().start('forwards', 12)
+                let fps = 12
+                let direction = 'forward'
+
+                function step(timestamp) {
+                    if (sprite.getCurrentStep() === 1) {
+                        sprite.animateStep(18, direction, fps, 'easeOut')
+                        return
+                    } else {
+                        window.requestAnimationFrame(step)
+                    }
+                }
+
+                sprite.on('start', function() {
+                    window.requestAnimationFrame(step)
+                })
+
+                sprite.build().start(direction, fps)
 			})
 
             // On click init button

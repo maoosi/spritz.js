@@ -49,6 +49,7 @@ export default (options = {}) => {
         ratio: null
     }
     let currentStep = settings.initial
+    let currentLoop = 0
     let frameRequest = null
 
 
@@ -439,7 +440,7 @@ export default (options = {}) => {
             let nextStep
 
             if (easing !== false) {
-                nextStep = easing(null, timeElapsed, startStep, endStep, timeTotal)
+                nextStep = easing(timeElapsed, startStep, endStep, timeTotal)
                 timeElapsed += interval
 
                 if (nextStep >= endStep) {
@@ -526,6 +527,11 @@ export default (options = {}) => {
         return _canUseSVG
     }
 
+    // Return the current number of loop already performed
+    function getCurrentLoop () {
+        return currentLoop
+    }
+
     // Return the current frame/step
     function getCurrentStep () {
         return currentStep
@@ -566,9 +572,11 @@ export default (options = {}) => {
 
             // Fire proxy replacement after a certain time on a frame
             clearTimeout(proxyTimeout)
-            proxyTimeout = setTimeout(function () {
-                _proxy(step)
-            }, 500)
+            if (frameRequest === null) {
+                proxyTimeout = setTimeout(function () {
+                    _proxy(step)
+                }, 500)
+            }
 
             // Emit changed
             if (silent === false) instance.emit('change')
@@ -601,33 +609,27 @@ export default (options = {}) => {
     }
 
     // Update current frame/step (animated)
-    function animateStep (step, fps = 12, easing = 'ease') {
+    function animateStep (step, direction = 'forward', fps = 12, easing = 'ease') {
+        if (frameRequest !== null) stop()
         let interval = 1000 / fps
-
-        // direction
-        let direction = 'next'
         let timeTotal = (step - currentStep) * interval
-        if (step < currentStep) {
-            direction = 'previous'
-            timeTotal = (currentStep - step) * interval
-        }
+        if (direction == 'backward') timeTotal = (currentStep - step) * interval
 
         // t: current time, b: begInnIng value, c: change In value, d: duration
         if (easing === 'ease' || easing === 'easeInOut') {
-            // easeInOutCubic
-            easing = function (x, t, b, c, d) {
-                if ((t /= d / 2) < 1) return c / 2 * t * t * t + b
-                return c / 2 * ((t -= 2) * t * t + 2) + b
+            // easeInOutSin
+            easing = function (t, b, c, d) {
+                return -c / 2 * (Math.cos(Math.PI * t / d) - 1) + b
             }
         } else if (easing === 'easeIn') {
-            // easeInCubic
-            easing = function (x, t, b, c, d) {
-                return c * (t /= d) * t * t + b
+            // easeInSine
+            easing = function (t, b, c, d) {
+                return -c * Math.cos(t / d * (Math.PI / 2)) + c + b
             }
         } else if (easing === 'easeOut') {
-            // easeOutCubic
-            easing = function (x, t, b, c, d) {
-                return c * ((t = t / d - 1) * t * t + 1) + b
+            // easeOutSine
+            easing = function (t, b, c, d) {
+                return c * Math.sin(t / d * (Math.PI / 2)) + b
             }
         }
 
