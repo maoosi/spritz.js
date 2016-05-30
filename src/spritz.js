@@ -593,6 +593,7 @@ export default (options = {}) => {
     // Start loop animation
     function start (direction = 'forward', fps = 12) {
         let interval = 1000 / fps
+        if (fps === 0) stop()
         _requestAnimation(interval, direction === 'forward' ? 'next' : 'previous')
         instance.emit('start')
         return this
