@@ -22,7 +22,6 @@ Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
 ## Work in progress
 
 * [ ] Testing
-* [ ] Demo samples on Codepen
 * [ ] Publish on NPM
 * [ ] Publish on JSDelivr
 * [ ] Debug mode with detailed console outputs
@@ -483,19 +482,16 @@ instance.isMaskingSupported()
 
 ## Browser Support
 
-> **TESTING IN PROGRESS** - **YET NOT COMPATIBLE WITH IE8 AND MOBILE DEVICES**
+> **TESTING IN PROGRESS**
 
-Spritz is fully supported by **Evergreen Browsers** such as: IE 10+, Opera, Safari, Firefox & Chrome. Graceful degradation support has also been implemented on the following:
+Spritz is fully supported by **Evergreen Browsers** (Edge, Opera, Safari, Firefox & Chrome) and IE 9+ browsers.
 
-* IE 9+
-* iOS Safari
-* Android Browser
+**Few notes about compatibility:**
 
-**Notes about support:**
-
-* There is known issue with **Safari** and SVG's that makes rendering very slow. Thereby, masking is disabled for Safari.
+* There is known issues with **Safari** and SVG's that makes rendering very slow. Thereby, masking is disabled for Safari.
+* The library includes a **classList polyfill** for old browsers support like IE9.
+* If your browser **doesn't support SVG**, spritz.js will gracefully disable masking.
 * In order to limit data usage on **mobile devices**, proxy replacement has been disabled by default.
-* **IE 8** uses render fallbacks and doesn't support SVG's. (For SVG support on IE 8, you can include the following polyfill into your project: https://code.google.com/archive/p/svgweb/)
 
 ## License
 
