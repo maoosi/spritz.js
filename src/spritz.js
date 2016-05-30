@@ -528,9 +528,9 @@ export default (options = {}) => {
     }
 
     // Return the current number of loop already performed
-    function getCurrentLoop () {
+    /* function getCurrentLoop () {
         return currentLoop
-    }
+    } */
 
     // Return the current frame/step
     function getCurrentStep () {
@@ -614,7 +614,7 @@ export default (options = {}) => {
         if (frameRequest !== null) stop()
         let interval = 1000 / fps
         let timeTotal = (step - currentStep) * interval
-        if (direction == 'backward') timeTotal = (currentStep - step) * interval
+        if (direction === 'backward') timeTotal = (currentStep - step) * interval
 
         // t: current time, b: begInnIng value, c: change In value, d: duration
         if (easing === 'ease' || easing === 'easeInOut') {
