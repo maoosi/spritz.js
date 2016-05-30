@@ -49,7 +49,7 @@ export default (options = {}) => {
         ratio: null
     }
     let currentStep = settings.initial
-    let currentLoop = 0
+    // let currentLoop = 0
     let frameRequest = null
 
 

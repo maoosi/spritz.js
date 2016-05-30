@@ -72,10 +72,7 @@ gulp.task('lint', () => {
 const browserifyArgs = {
   debug: true,
   entries: folders.src + '/' + library.filename,
-  standalone: library.class,
-  transform: [
-	  'babelify'
-  ]
+  standalone: library.class
 }
 
 const watchifyArgs = assign(watchify.args, browserifyArgs)
@@ -86,6 +83,9 @@ const build = () => {
 	console.time('Bundling finished')
 
 	return bundler
+        .transform('babelify', {
+            plugins: ['transform-runtime', 'add-module-exports']
+        })
 		.bundle()
 		.on('error', onError)
 		.on('end', () => console.timeEnd('Bundling finished'))
