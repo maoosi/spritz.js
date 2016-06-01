@@ -504,7 +504,7 @@ export default (options = {}) => {
     // Destroy completely the sprite and restore initial state
     function destroy () {
         _unbindEvents()
-        mainNode.parentNode.removeChild(mainNode)
+        if (mainNode !== null) mainNode.parentNode.removeChild(mainNode)
         imageNode = fallbackNode = mainNode = svgNode = proxyNode = proxyTimeout = null
         proxyImagesList = []
         stop(true)
