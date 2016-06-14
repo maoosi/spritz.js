@@ -64,9 +64,9 @@ export default (options = {}) => {
         _generateProxy,
         _accessibility,
         _bindEvents,
-        _defaultStep,
         _generateCSS,
-        flip
+        flip,
+        _defaultStep
     ]
 
     const __init = [
@@ -559,8 +559,8 @@ export default (options = {}) => {
             let columnsZero = sprite.columns - 1
 
             // Calculate the new position
-            let positionX = (100 / columnsZero) * (stepZero % sprite.columns)
-            let positionY = (100 / rowsZero) * Math.floor(stepZero / sprite.columns)
+            let positionX = sprite.columns > 1 ? (100 / columnsZero) * (stepZero % sprite.columns) : 0
+            let positionY = settings.rows > 1 ? (100 / rowsZero) * Math.floor(stepZero / sprite.columns) : 0
 
             // Set the new sprite position
             if (svgNode !== null) {
