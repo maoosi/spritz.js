@@ -3,10 +3,9 @@
 import packageJSON from './package.json'
 import path from 'path'
 
-import sync from 'browser-sync'
+import browserSync from 'browser-sync'
 import babelify from 'babelify'
 import browserify from 'browserify'
-import watchify from 'watchify'
 import assign from 'lodash.assign'
 import buffer from 'vinyl-buffer'
 import source from 'vinyl-source-stream'
@@ -14,13 +13,11 @@ import gulp from 'gulp'
 
 import eslint from 'gulp-eslint'
 import autoprefixer from 'gulp-autoprefixer'
-import changed from 'gulp-changed'
 import sourcemaps from 'gulp-sourcemaps'
 import notifier from 'node-notifier'
 import header from 'gulp-header'
 import uglify from 'gulp-uglify'
-import gutil from 'gulp-util'
-import es3ify from 'gulp-es3ify'
+// import es3ify from 'gulp-es3ify'
 import replace from 'gulp-replace';
 
 
@@ -70,13 +67,12 @@ gulp.task('lint', () => {
 // BUNDLE
 
 const browserifyArgs = {
-  debug: true,
-  entries: folders.src + '/' + library.filename,
-  standalone: library.class
+    debug: true,
+    entries: folders.src + '/' + library.filename,
+    standalone: library.class
 }
 
-const watchifyArgs = assign(watchify.args, browserifyArgs)
-const bundler = watchify(browserify(watchifyArgs))
+const bundler = browserify(browserifyArgs)
 
 const build = () => {
 	console.log('Bundling started...')
@@ -91,7 +87,7 @@ const build = () => {
 		.on('end', () => console.timeEnd('Bundling finished'))
 		.pipe(source('spritz.min.js'))
 		.pipe(buffer())
-        .pipe(es3ify())
+        //.pipe(es3ify())
 		.pipe(sourcemaps.init({ loadMaps: true }))
 		.pipe(uglify())
         .pipe(replace(/\/\* == ([\s\S]*?) == \*\//g, ''))
@@ -101,6 +97,7 @@ const build = () => {
 		.pipe(header(attribution, { pkg: packageJSON }))
 		.pipe(sourcemaps.write('./', { addComment: false }))
 		.pipe(gulp.dest(folders.dist))
+        .pipe(server.reload({ stream: true }))
 }
 
 bundler.on('update', build)
@@ -109,8 +106,7 @@ gulp.task('js', ['lint'], build)
 
 // SERVER
 
-const server = sync.create()
-const reload = sync.reload
+const server = browserSync.create()
 
 const sendMaps = (req, res, next) => {
 	const filename = req.url.split('/').pop()
@@ -131,23 +127,19 @@ const options = {
 		middleware: [
 	      sendMaps
 	    ]
-	},
-	reloadDelay: 500,
-    watchOptions: {
-        ignored: '*.map'
-    }
+	}
 }
 
-gulp.task('server', () => setTimeout(function(){ sync(options) }, 1000))
+gulp.task('browser-sync', ['js'], () => server.init(options))
 
 
 // WATCH
 
 gulp.task('watch', () => {
-    gulp.watch([folders.src + '/**/*', folders.sandbox + '/**/*'], ['js', reload])
+    gulp.watch([folders.src + '/**/*', folders.sandbox + '/**/*'], ['js'])
 })
 
 
 // DEFAULT TASK
 
-gulp.task('default', ['js', 'server', 'watch'])
+gulp.task('default', ['browser-sync', 'watch'])
