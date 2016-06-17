@@ -12,7 +12,7 @@ Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).
 
 * **Accessible** - full support for screen readers
 * **Lightweight** - under 13KB minified and gzipped
-* **Responsive** - as you'd expect these days
+* **Flexible** - multiple built-in display modes
 * **[Compatible](#browser-support)** - IE9+ support, mobile support
 * **[API / Events](#api--events)** - init, load, destroy, changeStep and more
 * **No dependencies** - written in ES6 JavaScript, no jQuery required
@@ -35,7 +35,7 @@ Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
 3. [Options](#options)
 4. [API / Events](#api--events)
 5. [Browser Support](#browser-support)
-6. [Projects Using Spritz.js](#projects-using-spritz)
+6. [Projects Using Spritz](#projects-using-spritz)
 7. [License](#license)
 
 ## Installation
