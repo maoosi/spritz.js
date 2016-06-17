@@ -47,8 +47,6 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
-    "classlist.js": "^1.1.20150312",
-    "knot.js": "^1.0.1",
-    "lodash.debounce": "^4.0.6"
+    "knot.js": "^1.0.1"
   }
 }
