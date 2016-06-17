@@ -1,6 +1,4 @@
-import 'classlist.js' // Cross-browser element.classList - https://github.com/eligrey/classList.js/
 import knot from 'knot.js' // A browser-based event emitter - https://github.com/callmecavs/knot.js
-import debounce from 'lodash.debounce' // Debounce function - https://lodash.com/docs#debounce
 
 export default (options = {}) => {
     /**
@@ -49,7 +47,6 @@ export default (options = {}) => {
         ratio: null
     }
     let currentStep = settings.initial
-    // let currentLoop = 0
     let frameRequest = null
 
 
@@ -89,7 +86,6 @@ export default (options = {}) => {
         changeProgress: changeProgress,
         start: start,
         stop: stop,
-        animateStep: animateStep,
         getCurrentStep: getCurrentStep,
         isMaskingSupported: isMaskingSupported,
         flip: flip
@@ -159,6 +155,20 @@ export default (options = {}) => {
         }
     }
 
+    // Simple debounce function
+    function __debounce (callback, delay) {
+        let timer
+
+        return function () {
+            var args = arguments
+            var context = this
+            clearTimeout(timer)
+            timer = setTimeout(function () {
+                callback.apply(context, args)
+            }, delay)
+        }
+    }
+
 
     /**
     * Private methods
@@ -211,7 +221,7 @@ export default (options = {}) => {
 
     // Viewport resizing
     function _viewportResize () {
-        return debounce(function (event) {
+        return __debounce(function (event) {
             settings.initial = currentStep
             _unbindEvents()
             build()
@@ -426,39 +436,22 @@ export default (options = {}) => {
     }
 
     // Frame animation
-    function _requestAnimation (interval, step = 'next', lastTime = 0, easing = false, timeElapsed = null, startStep = null, endStep = null, timeTotal = null) {
+    function _requestAnimation (interval, step = 'next', lastTime = 0) {
         frameRequest = window.requestAnimationFrame(function (timestamp) {
-            _loopAnimation(interval, step, timestamp, lastTime, easing, timeElapsed, startStep, endStep, timeTotal)
+            _loopAnimation(interval, step, timestamp, lastTime)
         })
     }
 
     // Loop animation
-    function _loopAnimation (interval, step, timestamp, lastTime, easing, timeElapsed, startStep, endStep, timeTotal) {
+    function _loopAnimation (interval, step, timestamp, lastTime) {
         let update = timestamp - lastTime >= interval
 
         if (update) {
-            let nextStep
-
-            if (easing !== false) {
-                nextStep = easing(timeElapsed, startStep, endStep, timeTotal)
-                timeElapsed += interval
-
-                if (nextStep >= endStep) {
-                    changeStep(endStep, true)
-                    stop(true)
-                    return
-                } else {
-                    nextStep = Math.round(nextStep)
-                }
-            } else {
-                nextStep = step
-            }
-
-            changeStep(nextStep)
+            changeStep(step)
             lastTime = timestamp
         }
 
-        _requestAnimation(interval, step, lastTime, easing, timeElapsed, startStep, endStep, timeTotal)
+        _requestAnimation(interval, step, lastTime)
     }
 
 
@@ -534,11 +527,6 @@ export default (options = {}) => {
         return _canUseSVG
     }
 
-    // Return the current number of loop already performed
-    /* function getCurrentLoop () {
-        return currentLoop
-    } */
-
     // Return the current frame/step
     function getCurrentStep () {
         return currentStep
@@ -613,37 +601,6 @@ export default (options = {}) => {
             frameRequest = null
             if (silent === false) instance.emit('stop')
         }
-        return this
-    }
-
-    // Update current frame/step (animated)
-    function animateStep (step, direction = 'forward', fps = 12, easing = 'ease') {
-        if (frameRequest !== null) stop()
-        let interval = 1000 / fps
-        let timeTotal = (step - currentStep) * interval
-        if (direction === 'backward') timeTotal = (currentStep - step) * interval
-
-        // t: current time, b: begInnIng value, c: change In value, d: duration
-        if (easing === 'ease' || easing === 'easeInOut') {
-            // easeInOutSin
-            easing = function (t, b, c, d) {
-                return -c / 2 * (Math.cos(Math.PI * t / d) - 1) + b
-            }
-        } else if (easing === 'easeIn') {
-            // easeInSine
-            easing = function (t, b, c, d) {
-                return -c * Math.cos(t / d * (Math.PI / 2)) + c + b
-            }
-        } else if (easing === 'easeOut') {
-            // easeOutSine
-            easing = function (t, b, c, d) {
-                return c * Math.sin(t / d * (Math.PI / 2)) + b
-            }
-        }
-
-        // requestAnimation
-        _requestAnimation(interval, direction, 0, easing, interval, currentStep, step, timeTotal)
-        instance.emit('animate')
         return this
     }
 }

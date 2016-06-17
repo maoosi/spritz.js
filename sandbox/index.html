@@ -87,19 +87,6 @@
                 let fps = 12
                 let direction = 'forward'
 
-                function step(timestamp) {
-                    if (sprite.getCurrentStep() === 1) {
-                        sprite.animateStep(18, direction, fps, 'easeOut')
-                        return
-                    } else {
-                        window.requestAnimationFrame(step)
-                    }
-                }
-
-                sprite.on('start', function() {
-                    window.requestAnimationFrame(step)
-                })
-
                 sprite.build().start(direction, fps)
 			})
 
@@ -115,12 +102,14 @@
 
 			// On change slider value
             document.querySelector('#changeStep').addEventListener('change', function(event) {
+                sprite.stop();
                 var value = ((event.target.value - 1) % 18) + 1;
                 sprite.changeStep(value);
             }, false);
 
 			// On change slider value
             document.querySelector('#changeStep').addEventListener('input', function(event) {
+                sprite.stop();
                 var value = ((event.target.value - 1) % 18) + 1;
                 sprite.changeStep(value);
             }, false);

@@ -11,7 +11,7 @@ Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).
 **Can be used for:** 360 viewers, products animation, interactive experiences, html5 games...
 
 * **Accessible** - full support for screen readers
-* **Lightweight** - under 15KB minified and gzipped
+* **Lightweight** - under 13KB minified and gzipped
 * **Responsive** - as you'd expect these days
 * **[Compatible](#browser-support)** - IE9+ support, mobile support
 * **[API / Events](#api--events)** - init, load, destroy, changeStep and more
@@ -26,7 +26,7 @@ Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
 * [ ] Publish on JSDelivr
 * [ ] Debug mode with detailed console outputs
 * [ ] Errors management
-* [ ] Options: From (first step / frame to consider), To (last step / frame to consider)
+* [ ] Ability to pass a HD sprite as proxy
 
 ## Getting Started
 
@@ -35,6 +35,8 @@ Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
 3. [Options](#options)
 4. [API / Events](#api--events)
 5. [Browser Support](#browser-support)
+6. [Projects Using Spritz.js](#projects-using-spritz)
+7. [License](#license)
 
 ## Installation
 
@@ -484,14 +486,19 @@ instance.isMaskingSupported()
 
 > **TESTING IN PROGRESS**
 
-Spritz is fully supported by **Evergreen Browsers** (Edge, Opera, Safari, Firefox & Chrome) and IE 9+ browsers.
+Spritz is fully supported by **Evergreen Browsers** (Edge, Opera, Safari, Firefox & Chrome) and IE 10+ browsers.
 
 **Few notes about compatibility:**
 
 * There is known issues with **Safari** and SVG's that makes rendering very slow. Thereby, masking is disabled for Safari.
-* The library includes a **classList polyfill** for old browsers support like IE9.
 * If your browser **doesn't support SVG**, spritz.js will gracefully disable masking.
 * In order to limit data usage on **mobile devices**, proxy replacement has been disabled by default.
+* For **old browser support like IE 9**, you'll need to manually add the classList polyfill into your project (https://github.com/eligrey/classList.js/)
+
+## Projects Using Spritz
+
+* **SNICKERS® Australia** | Hungerithm Campaign | http://www.hungerithm.com
+* **Transport Accident Commission of Australia** | Vulnerability Campaign | *Coming Soon*
 
 ## License
 
