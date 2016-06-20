@@ -84,8 +84,8 @@ export default (options = {}) => {
         destroy: destroy,
         changeStep: changeStep,
         changeProgress: changeProgress,
-        start: start,
-        stop: stop,
+        play: play,
+        pause: pause,
         getCurrentStep: getCurrentStep,
         isMaskingSupported: isMaskingSupported,
         flip: flip
@@ -499,14 +499,15 @@ export default (options = {}) => {
         if (mainNode !== null) mainNode.parentNode.removeChild(mainNode)
         imageNode = fallbackNode = mainNode = svgNode = proxyNode = proxyTimeout = null
         proxyImagesList = []
-        stop(true)
+        pause(true)
         _unbindEvents()
         instance.emit('destroy')
         instance.off('init')
         instance.off('load')
         instance.off('build')
         instance.off('destroy')
-        instance.off('start')
+        instance.off('play')
+        instance.off('pause')
         instance.off('stop')
         instance.off('change')
         return this
@@ -585,22 +586,30 @@ export default (options = {}) => {
         return changeStep(stepEquiv === 0 ? stepEquiv + 1 : stepEquiv)
     }
 
-    // Start loop animation
-    function start (direction = 'forward', fps = 12) {
+    // Play loop animation
+    function play (fps = 12, direction = 'forward') {
         let interval = 1000 / fps
-        if (fps === 0) stop()
+        if (fps === 0) pause()
         _requestAnimation(interval, direction === 'forward' ? 'next' : 'previous')
-        instance.emit('start')
+        instance.emit('play')
         return this
     }
 
-    // Stop loop animation
-    function stop (silent = false) {
+    // Pause loop animation
+    function pause (silent = false) {
         if (frameRequest !== null) {
             window.cancelAnimationFrame(frameRequest)
             frameRequest = null
-            if (silent === false) instance.emit('stop')
+            if (silent === false) instance.emit('pause')
         }
+        return this
+    }
+
+    // Stop and reset the loop animation
+    function stop (silent = false) {
+        this.pause(true)
+        if (silent === false) instance.emit('stop')
+        this.changeStep(settings.initial)
         return this
     }
 }

@@ -71,9 +71,7 @@ Simply import `spritz.js`, then instantiate it.
 import Spritz from 'spritz.js'
 
 // create an instance
-const instance = Spritz({
-	// Your options here
-})
+const instance = Spritz({ /* options here */ })
 
 // basic usage: build & load the sprite
 instance.init()
@@ -90,9 +88,7 @@ Simply include `spritz.min.js` into your project, then instantiate it. This can 
 
 ```javascript
 // create an instance
-var instance = Spritz({
-	// Your options here
-})
+var instance = Spritz({ /* options here */ })
 
 // basic usage: build & load the sprite
 instance.init()
@@ -311,7 +307,8 @@ Spritz exposes the following methods, and corresponding events:
 * [load](#load)
 * [build](#build)
 * [destroy](#destroy)
-* [start](#startdirection-fps)
+* [play](#playfps-direction)
+* [pause](#pause)
 * [stop](#stop)
 * [changeStep](#changestepstep)
 * [changeProgress](#changeprogressprogressvalue)
@@ -377,31 +374,45 @@ instance.on('destroy', () => {
 })
 ```
 
-### .start(direction, fps)
+### .play(fps, direction)
 
 Used to _start sprite loop animation_. Useful for playing infinite loop animations.
 
 **Parameters:**
 
-* direction (string): "forward" OR "backward". Default: "forward"
 * fps (integer): frames per second. Default: 12
+* direction (string): "forward" OR "backward". Default: "forward"
 
 ```javascript
-// start loop animation with default parameters
-instance.start()
+// play loop animation with default parameters
+instance.play()
 
-// start loop animation 'backward', 25 fps
-instance.start('backward', 25)
+// play loop animation at 25 fps, 'backward' 
+instance.play(25, 'backward')
 
-// 'start' is emitted AFTER the animation has started
-instance.on('start', () => {
+// 'play' is emitted AFTER the animation has started
+instance.on('play', () => {
+  // ...
+})
+```
+
+### .pause()
+
+Used to _pause sprite loop animation_.
+
+```javascript
+// pause loop animation
+instance.pause()
+
+// 'pause' is emitted AFTER the animation loop has paused
+instance.on('pause', () => {
   // ...
 })
 ```
 
 ### .stop()
 
-Used to _stop sprite loop animation_.
+Used to _stop and reset the sprite loop animation_ to its initial step.
 
 ```javascript
 // stop loop animation
