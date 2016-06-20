@@ -86,6 +86,7 @@ export default (options = {}) => {
         changeProgress: changeProgress,
         play: play,
         pause: pause,
+        stop: stop,
         getCurrentStep: getCurrentStep,
         isMaskingSupported: isMaskingSupported,
         flip: flip
