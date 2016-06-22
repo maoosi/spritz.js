@@ -327,7 +327,7 @@ export default (options = {}) => {
             __css(mainNode, {
                 'position': 'relative',
                 'width': '100%',
-                'height': '' + (mainNode.parentNode.offsetWidth / sprite.ratio) + 'px'
+                'height': '' + (mainNode.parentNode.clientWidth / sprite.ratio) + 'px'
             })
         } else {
             __css(mainNode, {
