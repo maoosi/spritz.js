@@ -4,7 +4,7 @@
 
 A small, modern, accessible, **sprites animation library**.
 
-Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).
+🚀 Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).
 
 ## Features
 
