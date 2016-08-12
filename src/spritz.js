@@ -1,4 +1,5 @@
-import knot from 'knot.js' // A browser-based event emitter - https://github.com/callmecavs/knot.js
+// A browser-based event emitter - https://github.com/callmecavs/knot.js
+import knot from 'knot.js'
 
 export default (options = {}) => {
     /**
@@ -23,7 +24,7 @@ export default (options = {}) => {
         mask: options.mask || false,
         proxy: options.proxy || false,
 
-        ariaLabel: options.ariaLabel || 'Sprite image used for presentation purpose'
+        ariaLabel: options.ariaLabel || ''
     }
 
 
@@ -49,6 +50,9 @@ export default (options = {}) => {
     let currentStep = settings.initial
     let frameRequest = null
 
+    let isAnimationPlaying = false
+    let elapsedSteps = 0
+
 
     /**
     * Series of functions
@@ -71,6 +75,12 @@ export default (options = {}) => {
         build
     ]
 
+    const __refresh = [
+        _generateCSS,
+        flip,
+        _defaultStep
+    ]
+
 
     /**
     * Expose public methods
@@ -81,6 +91,7 @@ export default (options = {}) => {
         init: init,
         load: load,
         build: build,
+        refresh: refresh,
         destroy: destroy,
         changeStep: changeStep,
         changeProgress: changeProgress,
@@ -156,20 +167,6 @@ export default (options = {}) => {
         }
     }
 
-    // Simple debounce function
-    function __debounce (callback, delay) {
-        let timer
-
-        return function () {
-            var args = arguments
-            var context = this
-            clearTimeout(timer)
-            timer = setTimeout(function () {
-                callback.apply(context, args)
-            }, delay)
-        }
-    }
-
 
     /**
     * Private methods
@@ -212,31 +209,34 @@ export default (options = {}) => {
 
     // Attach events listeners
     function _bindEvents () {
-        window.addEventListener('resize', _viewportResize())
+        window.addEventListener('resize', _viewportResize)
     }
 
     // Detach events listeners
     function _unbindEvents () {
-        window.removeEventListener('resize', _viewportResize())
+        window.removeEventListener('resize', _viewportResize)
     }
 
     // Viewport resizing
     function _viewportResize () {
-        return __debounce(function (event) {
-            settings.initial = currentStep
-            _unbindEvents()
-            build()
-        }, 500)
+        return refresh()
     }
 
     // Generate accessibility tags
     function _accessibility () {
-        __setAttributes(mainNode, {
-            'role': 'img',
-            'aria-label': settings.ariaLabel,
-            'tabindex': '0',
-            'aria-hidden': 'false'
-        })
+        if (settings.ariaLabel.length > 2) {
+            __setAttributes(mainNode, {
+                'role': 'img',
+                'aria-label': settings.ariaLabel,
+                'tabindex': '0',
+                'aria-hidden': 'false'
+            })
+        } else {
+            __setAttributes(mainNode, {
+                'role': 'img',
+                'aria-hidden': 'false'
+            })
+        }
     }
 
     // Generate the proxy dom
@@ -284,7 +284,7 @@ export default (options = {}) => {
 
     // Set default step
     function _defaultStep () {
-        changeStep(settings.initial)
+        changeStep(settings.initial, true)
     }
 
     // Generate the CSS
@@ -438,6 +438,11 @@ export default (options = {}) => {
 
     // Frame animation
     function _requestAnimation (interval, step = 'next', lastTime = 0) {
+        if (frameRequest !== null) {
+            window.cancelAnimationFrame(frameRequest)
+            frameRequest = null
+        }
+
         frameRequest = window.requestAnimationFrame(function (timestamp) {
             _loopAnimation(interval, step, timestamp, lastTime)
         })
@@ -452,7 +457,9 @@ export default (options = {}) => {
             lastTime = timestamp
         }
 
-        _requestAnimation(interval, step, lastTime)
+        if (isAnimationPlaying) {
+            _requestAnimation(interval, step, lastTime)
+        }
     }
 
 
@@ -471,8 +478,18 @@ export default (options = {}) => {
 
     // Create the sprite structure
     function build () {
+        elapsedSteps = 0
         __runSeries(__build).then(function () {
             instance.emit('build')
+        })
+        return this
+    }
+
+    // Refresh the view
+    function refresh () {
+        settings.initial = currentStep
+        __runSeries(__refresh).then(function () {
+            instance.emit('refresh')
         })
         return this
     }
@@ -497,11 +514,13 @@ export default (options = {}) => {
 
     // Destroy completely the sprite and restore initial state
     function destroy () {
-        if (mainNode !== null) mainNode.parentNode.removeChild(mainNode)
-        imageNode = fallbackNode = mainNode = svgNode = proxyNode = proxyTimeout = null
-        proxyImagesList = []
         pause(true)
         _unbindEvents()
+
+        if (mainNode !== null) {
+            mainNode.parentNode.removeChild(mainNode)
+        }
+
         instance.emit('destroy')
         instance.off('init')
         instance.off('load')
@@ -511,6 +530,10 @@ export default (options = {}) => {
         instance.off('pause')
         instance.off('stop')
         instance.off('change')
+
+        imageNode = fallbackNode = mainNode = svgNode = proxyNode = proxyTimeout = null
+        proxyImagesList = []
+
         return this
     }
 
@@ -535,16 +558,16 @@ export default (options = {}) => {
     }
 
     // Change the current frame/step (no animation)
-    function changeStep (step = 1, silent = false) {
+    function changeStep (targetStep = 1, silent = false) {
         if (mainNode != null && imageNode != null) {
             // Hide the proxy
             _hideProxy()
 
             // If next or previous step
-            step = (step === 'next') ? _nextStep() : (step === 'previous') ? _prevStep() : step
+            let targetStepDecoded = (targetStep === 'next') ? _nextStep() : (targetStep === 'previous') ? _prevStep() : targetStep
 
             // Step & rows values, starting from 0
-            let stepZero = step - 1
+            let stepZero = targetStepDecoded - 1
             let rowsZero = settings.rows - 1
             let columnsZero = sprite.columns - 1
 
@@ -565,18 +588,23 @@ export default (options = {}) => {
             }
 
             // Save current step
-            currentStep = step
+            currentStep = targetStepDecoded
 
             // Fire proxy replacement after a certain time on a frame
-            clearTimeout(proxyTimeout)
-            if (frameRequest === null) {
-                proxyTimeout = setTimeout(function () {
-                    _proxy(step)
-                }, 500)
+            if (settings.proxy !== false) {
+                clearTimeout(proxyTimeout)
+                if (frameRequest === null) {
+                    proxyTimeout = setTimeout(function () {
+                        _proxy(targetStepDecoded)
+                    }, 500)
+                }
             }
 
             // Emit changed
-            if (silent === false) instance.emit('change')
+            if (silent === false) {
+                elapsedSteps++
+                instance.emit('change', targetStepDecoded, elapsedSteps)
+            }
         }
         return this
     }
@@ -589,9 +617,12 @@ export default (options = {}) => {
 
     // Play loop animation
     function play (fps = 12, direction = 'forward') {
+        elapsedSteps = 0
         let interval = 1000 / fps
         if (fps === 0) pause()
-        _requestAnimation(interval, direction === 'forward' ? 'next' : 'previous')
+        isAnimationPlaying = true
+        let _direction = (direction === 'forward') ? 'next' : 'previous'
+        _requestAnimation(interval, _direction)
         instance.emit('play')
         return this
     }
@@ -599,6 +630,8 @@ export default (options = {}) => {
     // Pause loop animation
     function pause (silent = false) {
         if (frameRequest !== null) {
+            elapsedSteps = 0
+            isAnimationPlaying = false
             window.cancelAnimationFrame(frameRequest)
             frameRequest = null
             if (silent === false) instance.emit('pause')
@@ -610,7 +643,7 @@ export default (options = {}) => {
     function stop (silent = false) {
         this.pause(true)
         if (silent === false) instance.emit('stop')
-        this.changeStep(settings.initial)
+        this.changeStep(settings.initial, false)
         return this
     }
 }
