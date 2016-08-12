@@ -1,6 +1,6 @@
 # Spritz.js
 
-> **TESTING IN PROGRESS** - **YET NOT PUBLISHED ON NPM AND JSDELIVR**
+> **IN PROGRESS** - **YET NOT PUBLISHED ON NPM AND JSDELIVR**
 
 A small, modern, accessible, **sprites animation library**.
 
@@ -21,12 +21,12 @@ Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
 
 ## Work in progress
 
-* [ ] Testing
+* [ ] Masking support problems on several browsers
+* [ ] Ability to pass a HD sprite as proxy
 * [ ] Publish on NPM
 * [ ] Publish on JSDelivr
 * [ ] Debug mode with detailed console outputs
 * [ ] Errors management
-* [ ] Ability to pass a HD sprite as proxy
 
 ## Getting Started
 
@@ -40,7 +40,7 @@ Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
 
 ## Installation
 
-> **TESTING IN PROGRESS** - **YET NOT PUBLISHED ON NPM AND JSDELIVR**
+> **IN PROGRESS** - **YET NOT PUBLISHED ON NPM AND JSDELIVR**
 
 ### Using NPM
 
@@ -290,7 +290,7 @@ Spritz({
 
 Define the **label used by screen readers**. This is just a simple descriptive sentence, explaining what your sprite shows to the user, so it can be read by assistive technology.
 
-**Default:** "Sprite image used for presentation purpose"
+**Default:** ""
 
 ```javascript
 Spritz({
@@ -387,7 +387,7 @@ Used to _start sprite loop animation_. Useful for playing infinite loop animatio
 // play loop animation with default parameters
 instance.play()
 
-// play loop animation at 25 fps, 'backward' 
+// play loop animation at 25 fps, 'backward'
 instance.play(25, 'backward')
 
 // 'play' is emitted AFTER the animation has started
@@ -495,8 +495,6 @@ instance.isMaskingSupported()
 
 ## Browser Support
 
-> **TESTING IN PROGRESS**
-
 Spritz is fully supported by **Evergreen Browsers** (Edge, Opera, Safari, Firefox & Chrome) and IE 10+ browsers.
 
 **Few notes about compatibility:**
@@ -508,8 +506,8 @@ Spritz is fully supported by **Evergreen Browsers** (Edge, Opera, Safari, Firefo
 
 ## Projects Using Spritz
 
-* **SNICKERS® Australia** | Hungerithm Campaign | http://www.hungerithm.com
-* **Transport Accident Commission (TAC) Victoria** | Meet Graham Campaign | http://www.meetgraham.com.au
+* **Mars Australia** | SNICKERS® Hungerithm | http://www.hungerithm.com
+* **TAC Victoria** | Meet Graham | http://www.meetgraham.com.au
 
 ## License
 
