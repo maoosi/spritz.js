@@ -1,8 +1,6 @@
 # Spritz.js
 
-> **IN PROGRESS** - **YET NOT PUBLISHED ON NPM AND JSDELIVR**
-
-A small, modern, accessible, **sprites animation library**.
+A small, modern, responsive, **sprites animation library**.
 
 🚀 Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).
 
@@ -12,21 +10,12 @@ A small, modern, accessible, **sprites animation library**.
 
 * **Accessible** - full support for screen readers
 * **Lightweight** - under 13KB minified and gzipped
-* **Flexible** - multiple built-in display modes
+* **Responsive** - multiple built-in display modes
+* **Modern** - written in ES6 JavaScript, no jQuery required
 * **[Compatible](#browser-support)** - IE9+ support, mobile support
-* **[API / Events](#api--events)** - init, load, destroy, changeStep and more
-* **No dependencies** - written in ES6 JavaScript, no jQuery required
+* **[API / Events](#api--events)** - play, pause, wait, and more
 
 Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
-
-## Work in progress
-
-* [ ] Masking support problems on several browsers
-* [ ] Ability to pass a HD sprite as proxy
-* [ ] Publish on NPM
-* [ ] Publish on JSDelivr
-* [ ] Debug mode with detailed console outputs
-* [ ] Errors management
 
 ## Getting Started
 
@@ -40,58 +29,29 @@ Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
 
 ## Installation
 
-> **IN PROGRESS** - **YET NOT PUBLISHED ON NPM AND JSDELIVR**
-
 ### Using NPM
 
 ```bash
-$ npm install spritz.js --save
+npm i spritz.js --save
 ```
 
 ### jsDelivr CDN
 
-```html
-<script src="https://cdn.jsdelivr.net/spritz.js/1.0.0/spritz.min.js"></script>
+```bash
+<script src="https://cdn.jsdelivr.net/spritz.js/2.0.0/spritz.js"></script>
 ```
 
 ## Usage
 
-Spritz was developed with a **modern JavaScript workflow** in mind. To use it, it's recommended you have a build system in place that can transpile ES6, and bundle modules.
-
-**If you don't have any ES6 workflow setup**, you can alternatively use the library in a more "classic" way, by including the minified version of the library into your project. For more details, please refer to the [Without ES6](#without-es6) example below.
-
-For more usage examples, please refer to [**Demo samples**](http://codepen.io/collection/XQZjMx/).
-
-### ES6
-
-Simply import `spritz.js`, then instantiate it.
-
 ```javascript
-// import Spritz
-import Spritz from 'spritz.js'
+// ES6 module import
+import Spritz from 'spritz.js' // not required if using a CDN or directly include
 
-// create an instance
-const instance = Spritz({ /* options here */ })
+// instantiate with options
+const sprite = new Spritz('#selector', { /* options here */ })
 
 // basic usage: build & load the sprite
-instance.init()
-```
-
-### Without ES6
-
-Simply include `spritz.min.js` into your project, then instantiate it. This can be done either by using the jsDelivr CDN, or by including it from the `dist` folder.
-
-```html
-<!-- include spritz.min.js -->
-<script src="path/to/spritz.min.js"></script>
-```
-
-```javascript
-// create an instance
-var instance = Spritz({ /* options here */ })
-
-// basic usage: build & load the sprite
-instance.init()
+sprite.init()
 ```
 
 ## Options
@@ -99,213 +59,32 @@ instance.init()
 Settings overview list:
 
 ```javascript
-Spritz({
-	/* required parameters */
-	src: 'path/to/sprite.jpg',
+Spritz('#selector', {
+	src: 'path/to/sprite.png',
+    mask: 'path/to/mask.png',
 	width: 6470,
 	height: 3096,
 	steps: 18,
 	rows: 4,
-
-	/* optional parameters */
-	container: '.selector',
-	initial: 1,
-	flip: false,
-	displayMode: 'fluid',
-	breakpoint: 640,
-	mask: 'path/to/sprite-alpha.png',
-	proxy: false,
+	display: 'fluid',
 	ariaLabel: 'Sprite image used for presentation purpose'
 })
-```    
+```
 
 Option details are detailed below.
 
-### Src (required)
-
-Specify the **path to your sprite**. Any format accepted (.jpg / .png / .gif).
-
-> If you plan to use a **mask** for your sprite, we recommend to use a .jpg
-
-```javascript
-Spritz({
-	src: 'path/to/sprite.jpg',
-	// ...
-})
-```    
-
-### Width (required)
-
-Specify the full **width in pixels**, of your sprite source image.
-
-```javascript
-Spritz({
-	width: 6470,
-	// ...
-})
-```
-
-### Height (required)
-
-Specify the full **height in pixels**, of your sprite source image.
-
-```javascript
-Spritz({
-	height: 3096,
-	// ...
-})
-```
-
-### Steps (required)
-
-Define the **number of total steps / frames**, that your sprite includes. _Starting from 1_.
-
-```javascript
-Spritz({
-	steps: 18,
-	// ...
-})
-```
-
-### Rows (required)
-
-Define the **number of rows / lines**, that your sprite includes. _Starting from 1_.
-
-```javascript
-Spritz({
-	rows: 4,
-	// ...
-})
-```
-
-### Container (optional, default: "body")
-
-Specify the **container** to use for the sprite element. It accepts both string selectors (.classname / #idname), and DOM objects.
-
-**Default:** "body"
-
-```javascript
-Spritz({
-	container: '.selector',
-	// ...
-})
-```
-
-### Initial (optional, default: 1)
-
-Define the **initial step / frame** where to initiate the sprite.
-
-**Default:** 1
-
-```javascript
-Spritz({
-	initial: 3,
-	// ...
-})
-```
-
-### Flip (optional, default: false)
-
-If set to true, the **sprite will be horizontaly mirrored**. For example, this allow you to reverse the orientation of a character sprite.
-
-**Default:** false
-
-```javascript
-Spritz({
-	flip: true,
-	// ...
-})
-```
-
-### Display Mode (optional, default: "fluid")
-
-Define the **display mode of the sprite**. If set to "fluid", the sprite will fit its container (similar to background-size contain in CSS). If set to "absolute", the sprite will keep its original size.
-
-**Default:** "fluid"
-
-```javascript
-Spritz({
-	displayMode: "absolute",
-	// ...
-})
-```
-
-### Breakpoint (optional, default: 640)
-
-Define the **minimum breakpoint size in pixels**. By default, devices below 640px width will be considered as "limited", and will have some features disabled. If set to false, limitation will be disabled, and all devices will benefit from the same features.
-
-_Features disabled for limited devices_:
-
-* Proxy images replacement (in order to limit the data consumption)
-
-**Default:** 640
-
-```javascript
-Spritz({
-	breakpoint: 640,
-	// ...
-})
-```
-
-### Mask (optional, default: false)
-
-Specify a **path to a sprite mask image**. This is just a black and white image that represents the transparent areas, and will be used as alpha mask. 8-bit PNG format is recommended.
-
-> **The mask image has to be the exact replica of your main sprite source.** It means same sizes, same steps, same rows, and same positioning.
-
-**Default:** false
-
-```javascript
-Spritz({
-	mask: 'path/to/sprite-alpha-mask.png',
-	// ...
-})
-```
-Please refer to [Browser Support](#browser-support) section, for more information about masking support.
-
-### Proxy (optional, default: false)
-
-JSON object defining **HD replacement proxy images**. Keys will defines the step / frame number. Values will define the path to the image. 24-bit PNG with transparency is recommended, if the sprite require transparency.
-
-If defined, the replacement will be triggered asynchronously, AFTER any step change.
-
-> Each proxy image has to be the exact replica of the sprite step to replace.
-
-**Default:** false
-
-```javascript
-Spritz({
-	proxy: {
-        1: 'path/to/proxy/hd-replacement-01.png',
-        2: 'path/to/proxy/hd-replacement-02.png',
-        3: 'path/to/proxy/hd-replacement-03.png',
-        4: 'path/to/proxy/hd-replacement-04.png',
-        // ...
-    },
-	// ...
-})
-```
-
-### Aria Label (optional, default: "Sprite image used for presentation purpose")
-
-Define the **label used by screen readers**. This is just a simple descriptive sentence, explaining what your sprite shows to the user, so it can be read by assistive technology.
-
-**Default:** ""
-
-```javascript
-Spritz({
-	ariaLabel: 'Sprite image used for presentation purpose',
-	// ...
-})
-```
+Option | Type | Default | Description
+---|---|---|---
+`thickness` | *integer* | `22` | Thickness of the snake body (the snake body is made of multiple squares, where thickness represents the width and height of each square).
+`color` | *string or array* | `red` | Color of the snake body (RGB or hexadecimal). Can be a single color `#3498db`, or a two colors gradient by using a array[2] `['#0000ff', '#ffffff']`.
+`length` | *integer* | `10` | Length of the snake body or tail length (also represents the number of squares that the body is made of).
+`speed` | *integer* | `15` | Speed of the snake animation (FPS).
 
 ## API / Events
 
 Spritz exposes the following methods, and corresponding events:
 
 * [init](#init)
-* [load](#load)
-* [build](#build)
 * [destroy](#destroy)
 * [play](#playfps-direction)
 * [pause](#pause)

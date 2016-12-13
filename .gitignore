@@ -1,23 +1,4 @@
-# CODE EDITORS
-.idea
-
-# SASS & NPM
-/node_modules
-.sass-cache
-
-# COMPOSER
-/vendor
-
-# LARAVEL PHP
-/public/storage
-.env
-Homestead.yaml
-Homestead.json
-
-# OS FILES
 .DS_Store
-Desktop.ini
-._*
-Thumbs.db
-.Spotlight-V100
-.Trashes
+node_modules
+*.log
+maps

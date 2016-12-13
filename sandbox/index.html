@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="no-js" lang="en">
+<html lang="en">
 <head>
 
     <meta charset="utf-8">
@@ -7,117 +7,32 @@
     <meta http-equiv="x-ua-compatible" content="IE=edge,chrome=1">
 
     <title>spritz.js</title>
-    <meta name="description" content="spritz.js sandbox">
-
-    <style>
-        html, body {
-            height: 100%;
-            padding: 0;
-            margin: 0;
-            background-color: #96a3ac;
-            background-color: #1F1D27;
-        }
-
-        .controls {
-            position: fixed;
-            z-index: 9999;
-        }
-
-		#demo {
-            position: relative;
-            width: 100%;
-            margin: auto;
-            height: 100%;
-		}
-    </style>
 
 </head>
 <body>
 
-	<div class="controls">
-	    <button id="init">Init</button>
-	    <button id="destroy">Destroy</button>
-		<input id="changeStep" type="range" min="1" max="36" value="1" step="1" />
-	</div>
-
-    <div id="demo"></div>
-    <script src="../dist/spritz.min.js"></script>
+    <div id="sprite"></div>
+    <script src="../dist/spritz.js"></script>
 
     <script>
-		document.addEventListener('DOMContentLoaded', function(event) {
+        console.log(new Spritz('#sprite', {}))
 
-			var sprite = Spritz({
-                container: '#demo',
+        const sprite = new Spritz('#sprite', {
+            picture: [
+                { srcset: 'path/to/sprite-hd.png', media: '(min-width: 1200px)' },
+                { srcset: 'path/to/sprite.webp' },
+                { srcset: 'path/to/sprite.jpg', mask: 'path/to/mask.png' }
+            ],
+        	width: 6470,
+        	height: 3096,
+        	steps: 18,
+        	rows: 4
+        }).init()
 
-                steps: 18,
-                rows: 4,
-                width: 6470,
-                height: 3096,
-
-                flip: false,
-                displayMode: 'absolute',
-
-                src: 'sprites/JPG-quality30-scale75.jpg',
-                mask: 'sprites/PNG-8bits-scale100-inset.png',
-                proxy: {
-                    1: 'proxy/step-01.png',
-                    2: 'proxy/step-02.png',
-                    3: 'proxy/step-03.png',
-                    4: 'proxy/step-04.png',
-                    5: 'proxy/step-05.png',
-                    6: 'proxy/step-06.png',
-                    7: 'proxy/step-07.png',
-                    8: 'proxy/step-08.png',
-                    9: 'proxy/step-09.png',
-                    10: 'proxy/step-10.png',
-                    11: 'proxy/step-11.png',
-                    12: 'proxy/step-12.png',
-                    13: 'proxy/step-13.png',
-                    14: 'proxy/step-14.png',
-                    15: 'proxy/step-15.png',
-                    16: 'proxy/step-16.png',
-                    17: 'proxy/step-17.png',
-                    18: 'proxy/step-18.png'
-                }
-            });
-
-            sprite.load();
-
-			sprite.on('load', function() {
-                let fps = 12
-                let direction = 'forward'
-
-                sprite.build().play(fps, direction)
-			})
-
-            // On click init button
-            document.querySelector('#init').addEventListener('click', function(event) {
-                sprite.init(document.querySelector('#changeStep').value);
-            }, false);
-
-            // On click destroy button
-            document.querySelector('#destroy').addEventListener('click', function(event) {
-                sprite.destroy();
-            }, false);
-
-			// On change slider value
-            document.querySelector('#changeStep').addEventListener('change', function(event) {
-                sprite.stop();
-                var value = ((event.target.value - 1) % 18) + 1;
-                sprite.changeStep(value);
-            }, false);
-
-			// On change slider value
-            document.querySelector('#changeStep').addEventListener('input', function(event) {
-                sprite.stop();
-                var value = ((event.target.value - 1) % 18) + 1;
-                sprite.changeStep(value);
-            }, false);
-
-      	});
+        sprite.on('load', () => {
+            sprite.play(60).wait(2000).playback(25).wait(3000).pause().wait(2000).play(22).stop()
+        })
     </script>
-
-	<script src="https://cdn.jsdelivr.net/g/modernizr@2.8.3"></script>
 
 </body>
 </html>

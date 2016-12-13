@@ -1,145 +1,150 @@
-// IMPORTS
+// imports
 
-import packageJSON from './package.json'
-import path from 'path'
+const pkg      = require('./package.json')
+const sync     = require('browser-sync')
+const del      = require('del')
+const fs       = require('fs')
+const gulp     = require('gulp')
+const notifier = require('node-notifier')
+const rollup   = require('rollup')
+const babel    = require('rollup-plugin-babel')
+const commonjs = require('rollup-plugin-commonjs')
+const resolve  = require('rollup-plugin-node-resolve')
+const eslint   = require('rollup-plugin-eslint')
 
-import browserSync from 'browser-sync'
-import babelify from 'babelify'
-import browserify from 'browserify'
-import assign from 'lodash.assign'
-import buffer from 'vinyl-buffer'
-import source from 'vinyl-source-stream'
-import gulp from 'gulp'
-
-import eslint from 'gulp-eslint'
-import autoprefixer from 'gulp-autoprefixer'
-import sourcemaps from 'gulp-sourcemaps'
-import notifier from 'node-notifier'
-import header from 'gulp-header'
-import uglify from 'gulp-uglify'
-// import es3ify from 'gulp-es3ify'
-import replace from 'gulp-replace';
-
-
-// VARS
-
-const folders = {
-	src: './src',
-	dist: './dist',
-	sandbox: './sandbox'
-}
-
-const library = {
-	name: 'spritz.js',
-	filename: 'spritz.js',
-	class: 'Spritz'
-}
-
-
-// ERROR HANDLER
+// error handler
 
 const onError = function(error) {
-	notifier.notify({ 'title': 'Error', 'message': 'Compilation failed.' })
-	console.log(error)
+    notifier.notify({
+        'title': 'Error',
+        'message': 'Compilation failure.'
+    })
+
+    console.log(error)
 }
 
+// clean
 
-// HEADER
-
-const attribution = [
-  '/*!',
-  ' * ' + library.name + ' <%= pkg.version %> - <%= pkg.description %>',
-  ' * Copyright (c) ' + new Date().getFullYear() + ' <%= pkg.author %> - <%= pkg.homepage %>',
-  ' * License: <%= pkg.license %>',
-  ' */'
-].join('\n')
-
-
-// LINT
-
-gulp.task('lint', () => {
-	return gulp.src(folders.src + '/**/*.js')
-		.pipe(eslint())
-		.pipe(eslint.format())
+gulp.task('clean', () => {
+    return del(
+        'dist/**.js',
+        '!dist'
+    )
 })
 
+// attribution
 
-// BUNDLE
+const attribution =
+`/*!
+* spritz.js ${ pkg.version } - ${ pkg.description }
+* Copyright (c) ${ new Date().getFullYear() } ${ pkg.author } - ${ pkg.homepage }
+* License: ${ pkg.license }
+*/
+`
 
-const browserifyArgs = {
-    debug: true,
-    entries: folders.src + '/' + library.filename,
-    standalone: library.class
+// js
+
+const read = {
+    entry: 'src/spritz.js',
+    plugins: [
+        resolve({
+            jsnext: true,
+            main: true,
+            browser: true
+        }),
+        eslint(),
+        commonjs(),
+        babel()
+    ]
 }
 
-const bundler = browserify(browserifyArgs)
-
-const build = () => {
-	console.log('Bundling started...')
-	console.time('Bundling finished')
-
-	return bundler
-        .transform('babelify', {
-            plugins: ['transform-runtime', 'add-module-exports']
-        })
-		.bundle()
-		.on('error', onError)
-		.on('end', () => console.timeEnd('Bundling finished'))
-		.pipe(source('spritz.min.js'))
-		.pipe(buffer())
-        //.pipe(es3ify())
-		.pipe(sourcemaps.init({ loadMaps: true }))
-		.pipe(uglify())
-        .pipe(replace(/\/\* == ([\s\S]*?) == \*\//g, ''))
-        .pipe(replace(/(\\n){2,}/g, '\\n'))
-        .pipe(replace(/ +/g, ' '))
-        .pipe(replace(/: /g, ':'))
-		.pipe(header(attribution, { pkg: packageJSON }))
-		.pipe(sourcemaps.write('./', { addComment: false }))
-		.pipe(gulp.dest(folders.dist))
-        .pipe(server.reload({ stream: true }))
+const write = {
+    umd: {
+        format: 'umd',
+        exports: 'default',
+        moduleName: 'Spritz',
+        banner: attribution,
+        sourceMap: true
+    },
+    module: {
+        format: 'es',
+        banner: attribution
+    }
 }
 
-bundler.on('update', build)
-gulp.task('js', ['lint'], build)
+gulp.task('js', () => {
+    return rollup
+    .rollup(read)
+    .then(bundle => {
+        // generate UMD and ES module from bundle
+        const umd = bundle.generate(write.umd)
+        const module = bundle.generate(write.module)
 
+        // write JS files
+        fs.writeFileSync(pkg.main, umd.code)
+        fs.writeFileSync(pkg.module, module.code)
 
-// SERVER
+        // write sourcemap
+        fs.writeFileSync('dist/maps/spritz.js.map', umd.map.toString())
+    })
+    .catch(onError)
+})
 
-const server = browserSync.create()
+// server
+
+const server = sync.create()
+const reload = sync.reload
 
 const sendMaps = (req, res, next) => {
-	const filename = req.url.split('/').pop()
-	const extension = filename.split('.').pop()
+    const filename = req.url.split('/').pop()
+    const extension = filename.split('.').pop()
 
-	if(extension === 'css' || extension === 'js') {
-		res.setHeader('X-SourceMap', '/' + filename + '.map')
-	}
+    if(extension === 'css' || extension === 'js') {
+        res.setHeader('X-SourceMap', '/maps/' + filename + '.map')
+    }
 
-	return next()
+    return next()
 }
 
 const options = {
-	notify: false,
-	startPath: '/sandbox/',
-	server: {
-		baseDir: '.',
-		middleware: [
-	      sendMaps
-	    ]
-	}
+    notify: false,
+    startPath: '/sandbox/',
+    server: {
+        baseDir: '.',
+        middleware: [
+            sendMaps
+        ]
+    },
+    watchOptions: {
+        ignored: '*.map'
+    }
 }
 
-gulp.task('browser-sync', ['js'], () => server.init(options))
+gulp.task('server', () => sync(options))
 
-
-// WATCH
+// watch
 
 gulp.task('watch', () => {
-    gulp.watch([folders.src + '/**/*', folders.sandbox + '/**/*'], ['js'])
+    gulp.watch('src/**/*.js', ['js', reload])
 })
 
+// build and default tasks
 
-// DEFAULT TASK
+const exists = path => {
+    try {
+        return fs.statSync(path).isDirectory()
+    } catch(error) {}
 
-gulp.task('default', ['browser-sync', 'watch'])
+    return false
+}
+
+gulp.task('build', ['clean'], () => {
+    // create dist directories
+    if(!exists('dist')) fs.mkdirSync('dist')
+    if(!exists('dist/maps')) fs.mkdirSync('dist/maps')
+
+    // run the tasks
+    gulp.start('js')
+})
+
+gulp.task('default', ['build', 'server', 'watch'])
