@@ -184,12 +184,7 @@ var Spritz = function () {
         classCallCheck(this, Spritz);
 
         // instance constructor
-        this.options = {
-            thickness: options.thickness || 22,
-            color: options.color || 'red',
-            length: options.length || 10,
-            speed: options.speed || 15
-        };
+        this.options = {};
 
         this.selector = typeof selector === 'string' ? document.querySelector(selector) : selector;
 
@@ -206,22 +201,46 @@ var Spritz = function () {
             // global vars
             this.canvas = false;
             this.ctx = false;
-            this.snake = [];
             this.parentWidth = this.selector.clientWidth;
             this.parentHeight = this.selector.clientHeight;
-            this.direction = 'right';
-            this.directionQueue = this.direction;
-            this.anim = false;
-            this.starter = false;
+
+            this.waitQueue = [];
+            this.waitTimer = false;
+            this.waitExecution = false;
+        }
+    }, {
+        key: '_throttle',
+        value: function _throttle(callback, delay) {
+            var _this = this,
+                _arguments = arguments;
+
+            // throttle function
+            var last = void 0;
+            var timer = void 0;
+            return function () {
+                var context = _this;
+                var now = +new Date();
+                var args = _arguments;
+                if (last && now < last + delay) {
+                    clearTimeout(timer);
+                    timer = setTimeout(function () {
+                        last = now;
+                        callback.apply(context, args);
+                    }, delay);
+                } else {
+                    last = now;
+                    callback.apply(context, args);
+                }
+            };
         }
     }, {
         key: '_bindEvents',
         value: function _bindEvents() {
-            var _this = this;
+            var _this2 = this;
 
             // create events listeners
             this.resize = this._throttle(function (event) {
-                _this._resize();
+                _this2._resize();
             }, 250);
 
             window.addEventListener('resize', this.resize, false);
@@ -241,7 +260,6 @@ var Spritz = function () {
             this.canvas.setAttribute('width', this.parentWidth);
             this.canvas.setAttribute('height', this.parentHeight);
             this.ctx = this.canvas.getContext('2d');
-            this._drawSnake();
 
             this.emitter.emit('resize');
         }
@@ -256,9 +274,6 @@ var Spritz = function () {
             // init vars, canvas, and snake
             if (!this.initiated) {
                 this._globalVars();
-                this._createCanvas();
-                this._createSnake();
-                this._drawSnake();
                 this._bindEvents();
 
                 this.initiated = true;
@@ -270,60 +285,108 @@ var Spritz = function () {
     }, {
         key: 'destroy',
         value: function destroy() {
+            var _this3 = this;
+
             // destroy snake & instance
-            if (this.initiated) {
-                this.stop();
-                this._unbindEvents();
-                this.canvas.parentNode.removeChild(this.canvas);
-                this.canvas = false;
-                this.ctx = false;
-                this.snake = [];
+            return this._handleWait(function () {
+                if (_this3.initiated) {
+                    // stop stuff
+                    _this3.stop();
+                    _this3._unbindEvents();
 
-                this.initiated = false;
-                this.emitter.emit('destroy');
+                    // reset & remove canvas
+                    _this3.canvas.parentNode.removeChild(_this3.canvas);
+                    _this3.canvas = false;
+                    _this3.ctx = false;
 
-                this.emitter.off('init');
-                this.emitter.off('destroy');
-                this.emitter.off('reset');
-                this.emitter.off('play');
-                this.emitter.off('pause');
-                this.emitter.off('stop');
-                this.emitter.off('resize');
-                this.emitter.off('draw');
-            }
+                    // turn initiated to false
+                    _this3.initiated = false;
 
-            return this;
+                    // emitt destroy
+                    _this3.emitter.emit('destroy');
+
+                    // turn off emitters
+                    _this3.emitter.off('init');
+                    _this3.emitter.off('destroy');
+                    _this3.emitter.off('resize');
+                    _this3.emitter.off('play');
+                    _this3.emitter.off('playback');
+                    _this3.emitter.off('wait');
+                    _this3.emitter.off('pause');
+                    _this3.emitter.off('stop');
+                }
+            });
         }
     }, {
         key: 'play',
-        value: function play() {
+        value: function play(fps) {
+            var _this4 = this;
+
             // play animation
-            this._playAnimation();
+            return this._handleWait(function () {
+                _this4._playAnimation();
 
-            this.emitter.emit('play');
+                console.log('playing');
 
-            return this;
+                _this4.emitter.emit('play');
+            });
+        }
+    }, {
+        key: 'playback',
+        value: function playback(fps) {
+            var _this5 = this;
+
+            // play animation
+            return this._handleWait(function () {
+                _this5._playAnimation();
+
+                console.log('playing backwards');
+
+                _this5.emitter.emit('playback');
+            });
         }
     }, {
         key: 'pause',
         value: function pause() {
+            var _this6 = this;
+
+            var silent = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
             // stop animation
-            this._pauseAnimation();
+            return this._handleWait(function () {
+                _this6._pauseAnimation();
 
-            this.emitter.emit('pause');
-
-            return this;
+                if (!silent) {
+                    console.log('paused');
+                    _this6.emitter.emit('pause');
+                }
+            });
         }
     }, {
         key: 'stop',
         value: function stop() {
+            var _this7 = this;
+
             // stop animation
-            this.pause();
-            this.reset();
+            return this._handleWait(function () {
+                _this7.pause(true);
+                _this7._resetAnimation();
 
-            this.emitter.emit('stop');
+                console.log('stopped');
 
-            return this;
+                _this7.emitter.emit('stop');
+            });
+        }
+    }, {
+        key: 'wait',
+        value: function wait(milliseconds) {
+            var _this8 = this;
+
+            // chainable timeout
+            return this._handleWait(function () {
+                _this8.emitter.emit('wait');
+                console.log('waiting for ' + milliseconds + 'ms');
+            }, milliseconds);
         }
     }, {
         key: 'on',
@@ -348,27 +411,72 @@ var Spritz = function () {
         }
 
         /**
+            --- WAIT ---
+        **/
+
+    }, {
+        key: '_handleWait',
+        value: function _handleWait(func) {
+            var milliseconds = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+            this.waitQueue.push({
+                'func': func,
+                'timeout': milliseconds
+            });
+            return this.waitExecution ? this : this._processNext();
+        }
+    }, {
+        key: '_processNext',
+        value: function _processNext() {
+            var _this9 = this;
+
+            if (this.waitQueue.length > 0) {
+                var current = this.waitQueue.shift();
+                var f = current['func'];
+                var t = current['timeout'];
+
+                if (t !== false) {
+                    f();
+                    this.waitExecution = true;
+                    this.waitTimer = setTimeout(function () {
+                        _this9._processNext();
+                    }, t);
+                } else {
+                    this.waitExecution = false;
+                    f();
+                    this._processNext();
+                }
+            }
+
+            return this;
+        }
+
+        /**
             --- ANIMATE ---
         **/
 
     }, {
+        key: '_resetAnimation',
+        value: function _resetAnimation() {
+            // reset animation to its initial state
+
+        }
+    }, {
         key: '_playAnimation',
         value: function _playAnimation() {
-            var _this2 = this;
-
-            // start snake animation
+            // start animation
             this.anim = window.requestAnimationFrame(function (timestamp) {
-                _this2._animStep(timestamp);
+                // this._animStep(timestamp)
             });
         }
     }, {
         key: '_pauseAnimation',
         value: function _pauseAnimation() {
-            // pause snake animation
+            // pause animation
             if (this.anim) {
                 window.cancelAnimationFrame(this.anim);
                 this.anim = false;
-                this.starter = false;
+                this.animStarter = false;
             }
         }
 
@@ -376,9 +484,13 @@ var Spritz = function () {
             --- DETECT ---
         **/
 
+        // ->
+
         /**
             --- DRAW ---
         **/
+
+        // ->
 
     }]);
     return Spritz;

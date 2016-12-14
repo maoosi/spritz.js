@@ -9,10 +9,7 @@ export default class Spritz {
     constructor (selector, options = {}) {
     // instance constructor
         this.options = {
-            thickness: options.thickness || 22,
-            color: options.color || 'red',
-            length: options.length || 10,
-            speed: options.speed || 15
+
         }
 
         this.selector = typeof selector === 'string'
@@ -30,13 +27,33 @@ export default class Spritz {
     // global vars
         this.canvas = false
         this.ctx = false
-        this.snake = []
         this.parentWidth = this.selector.clientWidth
         this.parentHeight = this.selector.clientHeight
-        this.direction = 'right'
-        this.directionQueue = this.direction
-        this.anim = false
-        this.starter = false
+
+        this.waitQueue = []
+        this.waitTimer = false
+        this.waitExecution = false
+    }
+
+    _throttle (callback, delay) {
+    // throttle function
+        let last
+        let timer
+        return () => {
+            let context = this
+            let now = +new Date()
+            let args = arguments
+            if (last && now < last + delay) {
+                clearTimeout(timer)
+                timer = setTimeout(() => {
+                    last = now
+                    callback.apply(context, args)
+                }, delay)
+            } else {
+                last = now
+                callback.apply(context, args)
+            }
+        }
     }
 
     _bindEvents () {
@@ -60,7 +77,6 @@ export default class Spritz {
         this.canvas.setAttribute('width', this.parentWidth)
         this.canvas.setAttribute('height', this.parentHeight)
         this.ctx = this.canvas.getContext('2d')
-        this._drawSnake()
 
         this.emitter.emit('resize')
     }
@@ -73,9 +89,6 @@ export default class Spritz {
     // init vars, canvas, and snake
         if (!this.initiated) {
             this._globalVars()
-            this._createCanvas()
-            this._createSnake()
-            this._drawSnake()
             this._bindEvents()
 
             this.initiated = true
@@ -87,56 +100,88 @@ export default class Spritz {
 
     destroy () {
     // destroy snake & instance
-        if (this.initiated) {
-            this.stop()
-            this._unbindEvents()
-            this.canvas.parentNode.removeChild(this.canvas)
-            this.canvas = false
-            this.ctx = false
-            this.snake = []
+        return this._handleWait(() => {
+            if (this.initiated) {
+                // stop stuff
+                this.stop()
+                this._unbindEvents()
 
-            this.initiated = false
-            this.emitter.emit('destroy')
+                // reset & remove canvas
+                this.canvas.parentNode.removeChild(this.canvas)
+                this.canvas = false
+                this.ctx = false
 
-            this.emitter.off('init')
-            this.emitter.off('destroy')
-            this.emitter.off('reset')
-            this.emitter.off('play')
-            this.emitter.off('pause')
-            this.emitter.off('stop')
-            this.emitter.off('resize')
-            this.emitter.off('draw')
-        }
+                // turn initiated to false
+                this.initiated = false
 
-        return this
+                // emitt destroy
+                this.emitter.emit('destroy')
+
+                // turn off emitters
+                this.emitter.off('init')
+                this.emitter.off('destroy')
+                this.emitter.off('resize')
+                this.emitter.off('play')
+                this.emitter.off('playback')
+                this.emitter.off('wait')
+                this.emitter.off('pause')
+                this.emitter.off('stop')
+            }
+        })
     }
 
-    play () {
+    play (fps) {
     // play animation
-        this._playAnimation()
+        return this._handleWait(() => {
+            this._playAnimation()
 
-        this.emitter.emit('play')
+            console.log('playing')
 
-        return this
+            this.emitter.emit('play')
+        })
     }
 
-    pause () {
+    playback (fps) {
+    // play animation
+        return this._handleWait(() => {
+            this._playAnimation()
+
+            console.log('playing backwards')
+
+            this.emitter.emit('playback')
+        })
+    }
+
+    pause (silent = false) {
     // stop animation
-        this._pauseAnimation()
+        return this._handleWait(() => {
+            this._pauseAnimation()
 
-        this.emitter.emit('pause')
-
-        return this
+            if (!silent) {
+                console.log('paused')
+                this.emitter.emit('pause')
+            }
+        })
     }
 
     stop () {
     // stop animation
-        this.pause()
-        this.reset()
+        return this._handleWait(() => {
+            this.pause(true)
+            this._resetAnimation()
 
-        this.emitter.emit('stop')
+            console.log('stopped')
 
-        return this
+            this.emitter.emit('stop')
+        })
+    }
+
+    wait (milliseconds) {
+    // chainable timeout
+        return this._handleWait(() => {
+            this.emitter.emit('wait')
+            console.log('waiting for ' + milliseconds + 'ms')
+        }, milliseconds)
     }
 
     on (...args) { return this.emitter.on(...args) }
@@ -144,22 +189,61 @@ export default class Spritz {
     once (...args) { return this.emitter.once(...args) }
 
     /**
+        --- WAIT ---
+    **/
+
+    _handleWait (func, milliseconds = false) {
+        this.waitQueue.push({
+            'func': func,
+            'timeout': milliseconds
+        })
+        return this.waitExecution ? this : this._processNext()
+    }
+
+    _processNext () {
+        if (this.waitQueue.length > 0) {
+            let current = this.waitQueue.shift()
+            let f = current['func']
+            let t = current['timeout']
+
+            if (t !== false) {
+                f()
+                this.waitExecution = true
+                this.waitTimer = setTimeout(() => {
+                    this._processNext()
+                }, t)
+            } else {
+                this.waitExecution = false
+                f()
+                this._processNext()
+            }
+        }
+
+        return this
+    }
+
+    /**
         --- ANIMATE ---
     **/
 
+    _resetAnimation () {
+    // reset animation to its initial state
+
+    }
+
     _playAnimation () {
-    // start snake animation
+    // start animation
         this.anim = window.requestAnimationFrame((timestamp) => {
-            this._animStep(timestamp)
+            // this._animStep(timestamp)
         })
     }
 
     _pauseAnimation () {
-    // pause snake animation
+    // pause animation
         if (this.anim) {
             window.cancelAnimationFrame(this.anim)
             this.anim = false
-            this.starter = false
+            this.animStarter = false
         }
     }
 
@@ -167,12 +251,12 @@ export default class Spritz {
         --- DETECT ---
     **/
 
-    //->
+    // ->
 
     /**
         --- DRAW ---
     **/
 
-    //->
+    // ->
 
 }

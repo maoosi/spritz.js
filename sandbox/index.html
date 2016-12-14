@@ -15,8 +15,6 @@
     <script src="../dist/spritz.js"></script>
 
     <script>
-        console.log(new Spritz('#sprite', {}))
-
         const sprite = new Spritz('#sprite', {
             picture: [
                 { srcset: 'path/to/sprite-hd.png', media: '(min-width: 1200px)' },
@@ -29,8 +27,10 @@
         	rows: 4
         }).init()
 
+        sprite.play(60).wait(2000).playback(25).wait(3000).pause().wait(2000).play(22).wait(5000).stop()
+
         sprite.on('load', () => {
-            sprite.play(60).wait(2000).playback(25).wait(3000).pause().wait(2000).play(22).stop()
+            sprite.play(60).wait(2000).playback(25).wait(3000).pause().wait(2000).play(22).wait(5000).stop()
         })
     </script>
 
