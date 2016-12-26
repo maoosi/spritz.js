@@ -1,4 +1,5 @@
 import knot from 'knot.js'
+import Wait from './wait.js'
 
 export default class Spritz {
 
@@ -9,7 +10,11 @@ export default class Spritz {
     constructor (selector, options = {}) {
     // instance constructor
         this.options = {
-
+            picture: options.picture || [],
+            width: options.width || 0,
+            height: options.height || 0,
+            steps: options.steps || 1,
+            rows: options.rows || 1
         }
 
         this.selector = typeof selector === 'string'
@@ -17,6 +22,8 @@ export default class Spritz {
             : selector
 
         this.emitter = knot()
+        this.waitter = new Wait()
+        this.supportsWebP = this._supportsWebP()
 
         this.initiated = false
 
@@ -27,22 +34,21 @@ export default class Spritz {
     // global vars
         this.canvas = false
         this.ctx = false
-        this.parentWidth = this.selector.clientWidth
-        this.parentHeight = this.selector.clientHeight
+        this.loaded = false
 
-        this.waitQueue = []
-        this.waitTimer = false
-        this.waitExecution = false
+        this.columns = this.options.steps / this.options.rows
     }
 
     _throttle (callback, delay) {
     // throttle function
         let last
         let timer
+
         return () => {
             let context = this
             let now = +new Date()
             let args = arguments
+
             if (last && now < last + delay) {
                 clearTimeout(timer)
                 timer = setTimeout(() => {
@@ -72,12 +78,7 @@ export default class Spritz {
 
     _resize () {
     // viewport resize triggered
-        this.parentWidth = this.selector.clientWidth
-        this.parentHeight = this.selector.clientHeight
-        this.canvas.setAttribute('width', this.parentWidth)
-        this.canvas.setAttribute('height', this.parentHeight)
-        this.ctx = this.canvas.getContext('2d')
-
+        this._loadPicture()
         this.emitter.emit('resize')
     }
 
@@ -85,11 +86,15 @@ export default class Spritz {
         --- API ---
     **/
 
-    init () {
+    init (step = 1) {
     // init vars, canvas, and snake
         if (!this.initiated) {
+            this.step = step
+
             this._globalVars()
             this._bindEvents()
+            this._createCanvas()
+            this._loadPicture()
 
             this.initiated = true
             this.emitter.emit('init')
@@ -100,7 +105,7 @@ export default class Spritz {
 
     destroy () {
     // destroy snake & instance
-        return this._handleWait(() => {
+        this.waitter.handle(() => {
             if (this.initiated) {
                 // stop stuff
                 this.stop()
@@ -122,39 +127,46 @@ export default class Spritz {
                 this.emitter.off('destroy')
                 this.emitter.off('resize')
                 this.emitter.off('play')
+                this.emitter.off('load')
                 this.emitter.off('playback')
                 this.emitter.off('wait')
                 this.emitter.off('pause')
                 this.emitter.off('stop')
             }
         })
+
+        return this
     }
 
     play (fps) {
     // play animation
-        return this._handleWait(() => {
+        this.waitter.handle(() => {
             this._playAnimation()
 
             console.log('playing')
 
             this.emitter.emit('play')
         })
+
+        return this
     }
 
     playback (fps) {
     // play animation
-        return this._handleWait(() => {
+        this.waitter.handle(() => {
             this._playAnimation()
 
             console.log('playing backwards')
 
             this.emitter.emit('playback')
         })
+
+        return this
     }
 
     pause (silent = false) {
     // stop animation
-        return this._handleWait(() => {
+        this.waitter.handle(() => {
             this._pauseAnimation()
 
             if (!silent) {
@@ -162,11 +174,13 @@ export default class Spritz {
                 this.emitter.emit('pause')
             }
         })
+
+        return this
     }
 
     stop () {
     // stop animation
-        return this._handleWait(() => {
+        this.waitter.handle(() => {
             this.pause(true)
             this._resetAnimation()
 
@@ -174,53 +188,33 @@ export default class Spritz {
 
             this.emitter.emit('stop')
         })
+
+        return this
     }
 
-    wait (milliseconds) {
+    wait (milliseconds = 0) {
     // chainable timeout
-        return this._handleWait(() => {
+        this.waitter.handle(() => {
             this.emitter.emit('wait')
             console.log('waiting for ' + milliseconds + 'ms')
         }, milliseconds)
+
+        return this
+    }
+
+    step (step = 1) {
+    // Change the current frame/step
+        this.waitter.handle(() => {
+            this.step = step
+            this._draw()
+        })
+
+        return this
     }
 
     on (...args) { return this.emitter.on(...args) }
     off (...args) { return this.emitter.off(...args) }
     once (...args) { return this.emitter.once(...args) }
-
-    /**
-        --- WAIT ---
-    **/
-
-    _handleWait (func, milliseconds = false) {
-        this.waitQueue.push({
-            'func': func,
-            'timeout': milliseconds
-        })
-        return this.waitExecution ? this : this._processNext()
-    }
-
-    _processNext () {
-        if (this.waitQueue.length > 0) {
-            let current = this.waitQueue.shift()
-            let f = current['func']
-            let t = current['timeout']
-
-            if (t !== false) {
-                f()
-                this.waitExecution = true
-                this.waitTimer = setTimeout(() => {
-                    this._processNext()
-                }, t)
-            } else {
-                this.waitExecution = false
-                f()
-                this._processNext()
-            }
-        }
-
-        return this
-    }
 
     /**
         --- ANIMATE ---
@@ -248,15 +242,121 @@ export default class Spritz {
     }
 
     /**
-        --- DETECT ---
+        --- DETECT & CALCULATE ---
     **/
 
-    // ->
+    _selectPicture () {
+    // select picture src from list
+        for (let i = 0; i < this.options.picture.length; i++) {
+            let pic = this.options.picture[i]
+            if (this._supportsFormat(pic.srcset) && this._matchesMedia(pic.media)) {
+                this.pic = pic
+                return pic.srcset
+            }
+        }
+        return false
+    }
+
+    _supportsFormat (filename) {
+    // return true if filename is a supported format
+        let ext = this._getExtension(filename)
+        return (ext === 'webp' && this.supportsWebP) || ext !== 'webp'
+    }
+
+    _supportsWebP () {
+    // return true if webP is supported
+        let canvas = document.createElement('canvas')
+        canvas.width = canvas.height = 1
+        return canvas.toDataURL && canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0
+    }
+
+    _getExtension (filename) {
+    // return filename extension
+        return (/[.]/.exec(filename)) ? /[^.]+$/.exec(filename)[0] : undefined
+    }
+
+    _matchesMedia (query = undefined) {
+    // return true if matches the media query
+        let mq = window.matchMedia(query)
+        return query !== undefined ? mq.matches : true
+    }
+
+    _setDimensions () {
+    // calculate sprite dimensions
+        this.stepWidth = this.pic.width / this.columns
+        this.stepHeight = this.pic.height / this.options.rows
+        this.stepRatio = this.stepWidth / this.stepHeight
+
+        this.parentWidth = this.selector.clientWidth
+        this.parentHeight = this.selector.clientHeight
+        this.parentRatio = this.parentWidth / this.parentHeight
+
+        if (this.stepRatio >= this.parentRatio) {
+            this.canvasWidth = this.parentWidth
+            this.canvasHeight = (this.stepHeight * this.canvasWidth) / this.stepWidth
+        } else {
+            this.canvasHeight = this.parentHeight
+            this.canvasWidth = (this.stepWidth * this.canvasHeight) / this.stepHeight
+        }
+
+        this.canvas.width = this.canvasWidth
+        this.canvas.height = this.canvasHeight
+    }
 
     /**
-        --- DRAW ---
+        --- CREATE & DRAW ---
     **/
 
-    // ->
+    _loadPicture () {
+    // load source picture
+        this.picture = new Image()
+        this.picture.onload = () => {
+            if (!this.loaded) {
+                this.emitter.emit('load')
+                this.loaded = true
+            }
+            this._draw()
+        }
+        this.picture.src = this._selectPicture()
+        console.log(this.picture.src)
+    }
+
+    _draw () {
+    // draw sprite
+        this._setDimensions()
+        this._drawPicture()
+    }
+
+    _drawPicture () {
+    // draw picture into canvas
+        let targetColumn = this.step % this.columns
+        let targetRow = Math.ceil(this.step / this.columns)
+
+        let posX = (targetColumn - 1) * this.stepWidth
+        let posY = (targetRow - 1) * this.stepHeight
+
+        console.log(targetColumn)
+        console.log(targetRow)
+        console.log(posX)
+        console.log(posY)
+
+        this.ctx.drawImage(
+            this.picture,
+            posX, posY,
+            this.stepWidth,
+            this.stepHeight,
+            0, 0,
+            this.canvasWidth,
+            this.canvasHeight
+        )
+    }
+
+    _createCanvas () {
+    // create html5 canvas
+        this.canvas = document.createElement('canvas')
+        this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;z-index:1;transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);')
+        this.selector.appendChild(this.canvas)
+        this.ctx = this.canvas.getContext('2d')
+    }
 
 }

@@ -167,6 +167,59 @@ var knot = (function () {
   });
 });
 
+var Wait = function () {
+    function Wait() {
+        classCallCheck(this, Wait);
+
+        // initiate wait vars
+        this.waitQueue = [];
+        this.waitTimer = false;
+        this.waitExecution = false;
+    }
+
+    createClass(Wait, [{
+        key: 'handle',
+        value: function handle(func) {
+            var milliseconds = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+            // handle wait
+            this.waitQueue.push({
+                'func': func,
+                'timeout': milliseconds
+            });
+
+            if (!this.waitExecution) {
+                this.next();
+            }
+        }
+    }, {
+        key: 'next',
+        value: function next() {
+            var _this = this;
+
+            // execute next
+            if (this.waitQueue.length > 0) {
+                var c = this.waitQueue.shift();
+                var f = c['func'];
+                var t = c['timeout'];
+
+                if (t !== false) {
+                    f();
+                    this.waitExecution = true;
+                    this.waitTimer = setTimeout(function () {
+                        _this.next();
+                    }, t);
+                } else {
+                    f();
+                    this.waitExecution = false;
+                    this.next();
+                }
+            }
+        }
+    }]);
+    return Wait;
+}();
+
 var Spritz = function () {
 
     /**
@@ -178,11 +231,19 @@ var Spritz = function () {
         classCallCheck(this, Spritz);
 
         // instance constructor
-        this.options = {};
+        this.options = {
+            picture: options.picture || [],
+            width: options.width || 0,
+            height: options.height || 0,
+            steps: options.steps || 1,
+            rows: options.rows || 1
+        };
 
         this.selector = typeof selector === 'string' ? document.querySelector(selector) : selector;
 
         this.emitter = knot();
+        this.waitter = new Wait();
+        this.supportsWebP = this._supportsWebP();
 
         this.initiated = false;
 
@@ -195,12 +256,9 @@ var Spritz = function () {
             // global vars
             this.canvas = false;
             this.ctx = false;
-            this.parentWidth = this.selector.clientWidth;
-            this.parentHeight = this.selector.clientHeight;
+            this.loaded = false;
 
-            this.waitQueue = [];
-            this.waitTimer = false;
-            this.waitExecution = false;
+            this.columns = this.options.steps / this.options.rows;
         }
     }, {
         key: '_throttle',
@@ -211,10 +269,12 @@ var Spritz = function () {
             // throttle function
             var last = void 0;
             var timer = void 0;
+
             return function () {
                 var context = _this;
                 var now = +new Date();
                 var args = _arguments;
+
                 if (last && now < last + delay) {
                     clearTimeout(timer);
                     timer = setTimeout(function () {
@@ -249,12 +309,7 @@ var Spritz = function () {
         key: '_resize',
         value: function _resize() {
             // viewport resize triggered
-            this.parentWidth = this.selector.clientWidth;
-            this.parentHeight = this.selector.clientHeight;
-            this.canvas.setAttribute('width', this.parentWidth);
-            this.canvas.setAttribute('height', this.parentHeight);
-            this.ctx = this.canvas.getContext('2d');
-
+            this._loadPicture();
             this.emitter.emit('resize');
         }
 
@@ -265,10 +320,16 @@ var Spritz = function () {
     }, {
         key: 'init',
         value: function init() {
+            var step = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+
             // init vars, canvas, and snake
             if (!this.initiated) {
+                this.step = step;
+
                 this._globalVars();
                 this._bindEvents();
+                this._createCanvas();
+                this._loadPicture();
 
                 this.initiated = true;
                 this.emitter.emit('init');
@@ -282,7 +343,7 @@ var Spritz = function () {
             var _this3 = this;
 
             // destroy snake & instance
-            return this._handleWait(function () {
+            this.waitter.handle(function () {
                 if (_this3.initiated) {
                     // stop stuff
                     _this3.stop();
@@ -304,12 +365,15 @@ var Spritz = function () {
                     _this3.emitter.off('destroy');
                     _this3.emitter.off('resize');
                     _this3.emitter.off('play');
+                    _this3.emitter.off('load');
                     _this3.emitter.off('playback');
                     _this3.emitter.off('wait');
                     _this3.emitter.off('pause');
                     _this3.emitter.off('stop');
                 }
             });
+
+            return this;
         }
     }, {
         key: 'play',
@@ -317,13 +381,15 @@ var Spritz = function () {
             var _this4 = this;
 
             // play animation
-            return this._handleWait(function () {
+            this.waitter.handle(function () {
                 _this4._playAnimation();
 
                 console.log('playing');
 
                 _this4.emitter.emit('play');
             });
+
+            return this;
         }
     }, {
         key: 'playback',
@@ -331,13 +397,15 @@ var Spritz = function () {
             var _this5 = this;
 
             // play animation
-            return this._handleWait(function () {
+            this.waitter.handle(function () {
                 _this5._playAnimation();
 
                 console.log('playing backwards');
 
                 _this5.emitter.emit('playback');
             });
+
+            return this;
         }
     }, {
         key: 'pause',
@@ -347,7 +415,7 @@ var Spritz = function () {
             var silent = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
             // stop animation
-            return this._handleWait(function () {
+            this.waitter.handle(function () {
                 _this6._pauseAnimation();
 
                 if (!silent) {
@@ -355,6 +423,8 @@ var Spritz = function () {
                     _this6.emitter.emit('pause');
                 }
             });
+
+            return this;
         }
     }, {
         key: 'stop',
@@ -362,7 +432,7 @@ var Spritz = function () {
             var _this7 = this;
 
             // stop animation
-            return this._handleWait(function () {
+            this.waitter.handle(function () {
                 _this7.pause(true);
                 _this7._resetAnimation();
 
@@ -370,17 +440,38 @@ var Spritz = function () {
 
                 _this7.emitter.emit('stop');
             });
+
+            return this;
         }
     }, {
         key: 'wait',
-        value: function wait(milliseconds) {
+        value: function wait() {
             var _this8 = this;
 
+            var milliseconds = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
             // chainable timeout
-            return this._handleWait(function () {
+            this.waitter.handle(function () {
                 _this8.emitter.emit('wait');
                 console.log('waiting for ' + milliseconds + 'ms');
             }, milliseconds);
+
+            return this;
+        }
+    }, {
+        key: 'step',
+        value: function step() {
+            var _this9 = this;
+
+            var _step = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
+
+            // Change the current frame/step
+            this.waitter.handle(function () {
+                _this9.step = _step;
+                _this9._draw();
+            });
+
+            return this;
         }
     }, {
         key: 'on',
@@ -402,47 +493,6 @@ var Spritz = function () {
             var _emitter3;
 
             return (_emitter3 = this.emitter).once.apply(_emitter3, arguments);
-        }
-
-        /**
-            --- WAIT ---
-        **/
-
-    }, {
-        key: '_handleWait',
-        value: function _handleWait(func) {
-            var milliseconds = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-
-            this.waitQueue.push({
-                'func': func,
-                'timeout': milliseconds
-            });
-            return this.waitExecution ? this : this._processNext();
-        }
-    }, {
-        key: '_processNext',
-        value: function _processNext() {
-            var _this9 = this;
-
-            if (this.waitQueue.length > 0) {
-                var current = this.waitQueue.shift();
-                var f = current['func'];
-                var t = current['timeout'];
-
-                if (t !== false) {
-                    f();
-                    this.waitExecution = true;
-                    this.waitTimer = setTimeout(function () {
-                        _this9._processNext();
-                    }, t);
-                } else {
-                    this.waitExecution = false;
-                    f();
-                    this._processNext();
-                }
-            }
-
-            return this;
         }
 
         /**
@@ -475,17 +525,131 @@ var Spritz = function () {
         }
 
         /**
-            --- DETECT ---
+            --- DETECT & CALCULATE ---
         **/
 
-        // ->
+    }, {
+        key: '_selectPicture',
+        value: function _selectPicture() {
+            // select picture src from list
+            for (var i = 0; i < this.options.picture.length; i++) {
+                var pic = this.options.picture[i];
+                if (this._supportsFormat(pic.srcset) && this._matchesMedia(pic.media)) {
+                    this.pic = pic;
+                    return pic.srcset;
+                }
+            }
+            return false;
+        }
+    }, {
+        key: '_supportsFormat',
+        value: function _supportsFormat(filename) {
+            // return true if filename is a supported format
+            var ext = this._getExtension(filename);
+            return ext === 'webp' && this.supportsWebP || ext !== 'webp';
+        }
+    }, {
+        key: '_supportsWebP',
+        value: function _supportsWebP() {
+            // return true if webP is supported
+            var canvas = document.createElement('canvas');
+            canvas.width = canvas.height = 1;
+            return canvas.toDataURL && canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+        }
+    }, {
+        key: '_getExtension',
+        value: function _getExtension(filename) {
+            // return filename extension
+            return (/[.]/.exec(filename) ? /[^.]+$/.exec(filename)[0] : undefined
+            );
+        }
+    }, {
+        key: '_matchesMedia',
+        value: function _matchesMedia() {
+            var query = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
+
+            // return true if matches the media query
+            var mq = window.matchMedia(query);
+            return query !== undefined ? mq.matches : true;
+        }
+    }, {
+        key: '_setDimensions',
+        value: function _setDimensions() {
+            // calculate sprite dimensions
+            this.stepWidth = this.pic.width / this.columns;
+            this.stepHeight = this.pic.height / this.options.rows;
+            this.stepRatio = this.stepWidth / this.stepHeight;
+
+            this.parentWidth = this.selector.clientWidth;
+            this.parentHeight = this.selector.clientHeight;
+            this.parentRatio = this.parentWidth / this.parentHeight;
+
+            if (this.stepRatio >= this.parentRatio) {
+                this.canvasWidth = this.parentWidth;
+                this.canvasHeight = this.stepHeight * this.canvasWidth / this.stepWidth;
+            } else {
+                this.canvasHeight = this.parentHeight;
+                this.canvasWidth = this.stepWidth * this.canvasHeight / this.stepHeight;
+            }
+
+            this.canvas.width = this.canvasWidth;
+            this.canvas.height = this.canvasHeight;
+        }
 
         /**
-            --- DRAW ---
+            --- CREATE & DRAW ---
         **/
 
-        // ->
+    }, {
+        key: '_loadPicture',
+        value: function _loadPicture() {
+            var _this10 = this;
 
+            // load source picture
+            this.picture = new Image();
+            this.picture.onload = function () {
+                if (!_this10.loaded) {
+                    _this10.emitter.emit('load');
+                    _this10.loaded = true;
+                }
+                _this10._draw();
+            };
+            this.picture.src = this._selectPicture();
+            console.log(this.picture.src);
+        }
+    }, {
+        key: '_draw',
+        value: function _draw() {
+            // draw sprite
+            this._setDimensions();
+            this._drawPicture();
+        }
+    }, {
+        key: '_drawPicture',
+        value: function _drawPicture() {
+            // draw picture into canvas
+            var targetColumn = this.step % this.columns;
+            var targetRow = Math.ceil(this.step / this.columns);
+
+            var posX = (targetColumn - 1) * this.stepWidth;
+            var posY = (targetRow - 1) * this.stepHeight;
+
+            console.log(targetColumn);
+            console.log(targetRow);
+            console.log(posX);
+            console.log(posY);
+
+            this.ctx.drawImage(this.picture, posX, posY, this.stepWidth, this.stepHeight, 0, 0, this.canvasWidth, this.canvasHeight);
+        }
+    }, {
+        key: '_createCanvas',
+        value: function _createCanvas() {
+            // create html5 canvas
+            this.canvas = document.createElement('canvas');
+            this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;z-index:1;transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);');
+            this.selector.appendChild(this.canvas);
+            this.ctx = this.canvas.getContext('2d');
+        }
     }]);
     return Spritz;
 }();
