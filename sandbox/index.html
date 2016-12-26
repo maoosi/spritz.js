@@ -8,6 +8,18 @@
 
     <title>spritz.js</title>
 
+    <style media="screen">
+        body {
+            margin: 0;
+        }
+        #sprite {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            overflow: hidden;
+        }
+    </style>
+
 </head>
 <body>
 
@@ -17,17 +29,23 @@
     <script>
         const sprite = new Spritz('#sprite', {
             picture: [
-                { srcset: 'path/to/sprite-hd.png', media: '(min-width: 1200px)' },
-                { srcset: 'path/to/sprite.webp' },
-                { srcset: 'path/to/sprite.jpg', mask: 'path/to/mask.png' }
+                {
+                    srcset: 'sprites/graham-hd.png',
+                    media: '(min-width: 1200px)',
+                    width: 7800, height: 2829
+                },
+                {
+                    srcset: 'sprites/graham.webp',
+                    width: 3900, height: 1415
+                },
+                {
+                    srcset: 'sprites/graham.png',
+                    width: 3900, height: 1415
+                }
             ],
-        	width: 6470,
-        	height: 3096,
         	steps: 18,
-        	rows: 4
-        }).init()
-
-        sprite.play(60).wait(2000).playback(25).wait(3000).pause().wait(2000).play(22).wait(5000).stop()
+        	rows: 3
+        }).init(8)
 
         sprite.on('load', () => {
             sprite.play(60).wait(2000).playback(25).wait(3000).pause().wait(2000).play(22).wait(5000).stop()
