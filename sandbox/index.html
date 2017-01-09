@@ -45,10 +45,29 @@
             ],
         	steps: 18,
         	rows: 3
-        }).init(8)
+        }).init(2)
 
         sprite.on('load', () => {
-            sprite.play(60).wait(2000).playback(25).wait(3000).pause().wait(2000).play(22).wait(5000).stop()
+            let logger = false
+
+            sprite
+                .wait(1000)
+                .next()
+                // .get('step', (result) => { console.log(result) })
+                // .get('picture', (result) => { console.log(result) })
+                .wait(1000)
+                .flip()
+                .next()
+                .wait(1000)
+                .flip()
+                .prev()
+                // .fps(10)
+                // .until(8, 2)
+                // .play()
+                // .wait(2000)
+                // .playback()
+                // .wait(4000)
+                // .pause()
         })
     </script>
 

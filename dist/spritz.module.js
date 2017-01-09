@@ -1,6 +1,6 @@
 /*!
 * spritz.js 2.0.0 - A small, modern, responsive, sprites animation library.
-* Copyright (c) 2016 maoosi <hello@sylvainsimao.fr> - https://github.com/maoosi/spritz.js
+* Copyright (c) 2017 maoosi <hello@sylvainsimao.fr> - https://github.com/maoosi/spritz.js
 * License: MIT
 */
 
@@ -48,7 +48,7 @@ var _extends = Object.assign || function (target) {
   return target;
 };
 
-var get = function get(object, property, receiver) {
+var get$1 = function get$1(object, property, receiver) {
   if (object === null) object = Function.prototype;
   var desc = Object.getOwnPropertyDescriptor(object, property);
 
@@ -58,7 +58,7 @@ var get = function get(object, property, receiver) {
     if (parent === null) {
       return undefined;
     } else {
-      return get(parent, property, receiver);
+      return get$1(parent, property, receiver);
     }
   } else if ("value" in desc) {
     return desc.value;
@@ -167,57 +167,134 @@ var knot = (function () {
   });
 });
 
-var Wait = function () {
-    function Wait() {
-        classCallCheck(this, Wait);
+/*!
+* wait.js 1.0.0 - Javascript library to easily delay and chain functions.
+* Copyright (c) 2017 maoosi <hello@sylvainsimao.fr> - https://github.com/maoosi/wait.js
+* License: MIT
+*/
 
-        // initiate wait vars
-        this.waitQueue = [];
-        this.waitTimer = false;
-        this.waitExecution = false;
+var classCallCheck$1 = function classCallCheck$1(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+};
+
+var createClass$1 = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) defineProperties(Constructor, staticProps);
+    return Constructor;
+  };
+}();
+
+var get$2 = function get$2(object, property, receiver) {
+  if (object === null) object = Function.prototype;
+  var desc = Object.getOwnPropertyDescriptor(object, property);
+
+  if (desc === undefined) {
+    var parent = Object.getPrototypeOf(object);
+
+    if (parent === null) {
+      return undefined;
+    } else {
+      return get$2(parent, property, receiver);
+    }
+  } else if ("value" in desc) {
+    return desc.value;
+  } else {
+    var getter = desc.get;
+
+    if (getter === undefined) {
+      return undefined;
     }
 
-    createClass(Wait, [{
-        key: 'handle',
-        value: function handle(func) {
-            var milliseconds = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+    return getter.call(receiver);
+  }
+};
 
-            // handle wait
-            this.waitQueue.push({
-                'func': func,
-                'timeout': milliseconds
-            });
+var set$1 = function set$1(object, property, value, receiver) {
+  var desc = Object.getOwnPropertyDescriptor(object, property);
 
-            if (!this.waitExecution) {
-                this.next();
-            }
+  if (desc === undefined) {
+    var parent = Object.getPrototypeOf(object);
+
+    if (parent !== null) {
+      set$1(parent, property, value, receiver);
+    }
+  } else if ("value" in desc && desc.writable) {
+    desc.value = value;
+  } else {
+    var setter = desc.set;
+
+    if (setter !== undefined) {
+      setter.call(receiver, value);
+    }
+  }
+
+  return value;
+};
+
+var Wait = function () {
+  function Wait() {
+    classCallCheck$1(this, Wait);
+
+    // initiate wait vars
+    this.waitQueue = [];
+    this.waitTimer = false;
+    this.waitExecution = false;
+  }
+
+  createClass$1(Wait, [{
+    key: 'handle',
+    value: function handle(func) {
+      var milliseconds = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+      // handle wait
+      this.waitQueue.push({
+        'func': func,
+        'timeout': milliseconds
+      });
+
+      if (!this.waitExecution) {
+        this.next();
+      }
+    }
+  }, {
+    key: 'next',
+    value: function next() {
+      var _this = this;
+
+      // execute next
+      if (this.waitQueue.length > 0) {
+        var c = this.waitQueue.shift();
+        var f = c['func'];
+        var t = c['timeout'];
+
+        if (t !== false) {
+          f();
+          this.waitExecution = true;
+          this.waitTimer = setTimeout(function () {
+            _this.next();
+          }, t);
+        } else {
+          f();
+          this.waitExecution = false;
+          this.next();
         }
-    }, {
-        key: 'next',
-        value: function next() {
-            var _this = this;
-
-            // execute next
-            if (this.waitQueue.length > 0) {
-                var c = this.waitQueue.shift();
-                var f = c['func'];
-                var t = c['timeout'];
-
-                if (t !== false) {
-                    f();
-                    this.waitExecution = true;
-                    this.waitTimer = setTimeout(function () {
-                        _this.next();
-                    }, t);
-                } else {
-                    f();
-                    this.waitExecution = false;
-                    this.next();
-                }
-            }
-        }
-    }]);
-    return Wait;
+      }
+    }
+  }]);
+  return Wait;
 }();
 
 var Spritz = function () {
@@ -257,8 +334,11 @@ var Spritz = function () {
             this.canvas = false;
             this.ctx = false;
             this.loaded = false;
-
+            this._resetUntil();
+            this.anim = false;
             this.columns = this.options.steps / this.options.rows;
+            this.currentFps = 15;
+            this.flipped = false;
         }
     }, {
         key: '_throttle',
@@ -324,7 +404,8 @@ var Spritz = function () {
 
             // init vars, canvas, and snake
             if (!this.initiated) {
-                this.step = step;
+                this.initialStep = step;
+                this.currentStep = step;
 
                 this._globalVars();
                 this._bindEvents();
@@ -351,6 +432,7 @@ var Spritz = function () {
 
                     // reset & remove canvas
                     _this3.canvas.parentNode.removeChild(_this3.canvas);
+                    _this3.container.parentNode.removeChild(_this3.container);
                     _this3.canvas = false;
                     _this3.ctx = false;
 
@@ -377,12 +459,13 @@ var Spritz = function () {
         }
     }, {
         key: 'play',
-        value: function play(fps) {
+        value: function play() {
             var _this4 = this;
 
-            // play animation
+            // play animation forward
             this.waitter.handle(function () {
-                _this4._playAnimation();
+                _this4.animDirection = 'forward';
+                _this4._startAnimation();
 
                 console.log('playing');
 
@@ -393,12 +476,13 @@ var Spritz = function () {
         }
     }, {
         key: 'playback',
-        value: function playback(fps) {
+        value: function playback() {
             var _this5 = this;
 
-            // play animation
+            // play animation backward
             this.waitter.handle(function () {
-                _this5._playAnimation();
+                _this5.animDirection = 'backward';
+                _this5._startAnimation();
 
                 console.log('playing backwards');
 
@@ -434,7 +518,7 @@ var Spritz = function () {
             // stop animation
             this.waitter.handle(function () {
                 _this7.pause(true);
-                _this7._resetAnimation();
+                _this7.step(_this7.initialStep);
 
                 console.log('stopped');
 
@@ -465,10 +549,108 @@ var Spritz = function () {
 
             var _step = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
 
-            // Change the current frame/step
+            // change the current frame/step
             this.waitter.handle(function () {
-                _this9.step = _step;
+                _this9.currentStep = _step;
                 _this9._draw();
+
+                _this9.emitter.emit('change');
+            });
+
+            return this;
+        }
+    }, {
+        key: 'fps',
+        value: function fps(speed) {
+            var _this10 = this;
+
+            // change animation speed
+            this.waitter.handle(function () {
+                _this10.currentFps = speed;
+            });
+
+            return this;
+        }
+    }, {
+        key: 'until',
+        value: function until(step) {
+            var _this11 = this;
+
+            var loop = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+            // next animation will stop at this
+            this.waitter.handle(function () {
+                _this11.stopAtStep = step;
+                _this11.stopAtLoop = loop;
+            });
+
+            return this;
+        }
+    }, {
+        key: 'next',
+        value: function next() {
+            var _this12 = this;
+
+            // go to the next frame
+            this.waitter.handle(function () {
+                _this12.animDirection = 'forward';
+                _this12.currentStep = _this12._targetStep();
+                _this12._draw();
+
+                _this12.emitter.emit('next');
+            });
+
+            return this;
+        }
+    }, {
+        key: 'prev',
+        value: function prev() {
+            var _this13 = this;
+
+            // go to the previous frame
+            this.waitter.handle(function () {
+                _this13.animDirection = 'backward';
+                _this13.currentStep = _this13._targetStep();
+                _this13._draw();
+
+                _this13.emitter.emit('prev');
+            });
+
+            return this;
+        }
+    }, {
+        key: 'get',
+        value: function get(data) {
+            var _this14 = this;
+
+            var callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+            // return data, then call the callback function with result
+            this.waitter.handle(function () {
+                switch (data) {
+                    case 'step':
+                        return callback !== false ? callback.call(_this14, _this14.currentStep) : _this14.currentStep;
+                    case 'picture':
+                        return callback !== false ? callback.call(_this14, _this14.pic) : _this14.pic;
+                    default:
+                        return false;
+                }
+            });
+
+            return this;
+        }
+    }, {
+        key: 'flip',
+        value: function flip() {
+            var _this15 = this;
+
+            // flip the canvas on horizontal axis
+            this.waitter.handle(function () {
+                var css = _this15.flipped ? 'width:100%;height:100%;' : 'width:100%;height:100%;-webkit-transform:scale(-1, 1);-ms-transform:scale(-1, 1);transform:scale(-1, 1);-webkit-filter:FlipH;filter:FlipH;';
+
+                _this15.container.setAttribute('style', css);
+                _this15.flipped = !_this15.flipped;
+                _this15.emitter.emit('flip');
             });
 
             return this;
@@ -500,27 +682,84 @@ var Spritz = function () {
         **/
 
     }, {
-        key: '_resetAnimation',
-        value: function _resetAnimation() {
-            // reset animation to its initial state
-
+        key: '_resetUntil',
+        value: function _resetUntil() {
+            // reset "until()" command
+            this.stopAtLoop = false;
+            this.stopAtStep = false;
         }
     }, {
-        key: '_playAnimation',
-        value: function _playAnimation() {
+        key: '_targetStep',
+        value: function _targetStep() {
+            // return following step to display
+            if (this.animDirection === 'forward') {
+                return this.currentStep < this.options.steps ? this.currentStep + 1 : 1;
+            } else {
+                return this.currentStep > 1 ? this.currentStep - 1 : this.options.steps;
+            }
+        }
+    }, {
+        key: '_animate',
+        value: function _animate(timestamp) {
+            var _this16 = this;
+
+            // frame animation
+            if (this.animTime === undefined) {
+                this.animTime = timestamp;
+            }
+
+            var seg = Math.floor((timestamp - this.animTime) / (1000 / this.currentFps));
+            var pauseAnim = false;
+
+            if (seg > this.animFrame) {
+                this.animFrame = seg;
+                this.currentStep = this._targetStep();
+
+                var draw = true;
+                if (this.currentStep === this.stopAtStep) {
+                    this.currentLoop++;
+                    if (this.currentLoop === this.stopAtLoop) {
+                        draw = false;
+                    }
+                }
+
+                if (draw) {
+                    this._draw();
+                } else {
+                    this.pause();
+                    pauseAnim = true;
+                }
+            }
+
+            if (!pauseAnim) {
+                this.anim = window.requestAnimationFrame(function (timestamp) {
+                    return _this16._animate(timestamp);
+                });
+            }
+        }
+    }, {
+        key: '_startAnimation',
+        value: function _startAnimation() {
+            var _this17 = this;
+
             // start animation
-            this.anim = window.requestAnimationFrame(function (timestamp) {
-                // this._animStep(timestamp)
-            });
+            if (!this.anim) {
+                this.animTime = undefined;
+                this.animFrame = -1;
+                this.currentLoop = 0;
+                this.anim = window.requestAnimationFrame(function (timestamp) {
+                    return _this17._animate(timestamp);
+                });
+            }
         }
     }, {
         key: '_pauseAnimation',
         value: function _pauseAnimation() {
             // pause animation
             if (this.anim) {
+                this._resetUntil();
                 window.cancelAnimationFrame(this.anim);
                 this.anim = false;
-                this.animStarter = false;
             }
         }
 
@@ -603,16 +842,16 @@ var Spritz = function () {
     }, {
         key: '_loadPicture',
         value: function _loadPicture() {
-            var _this10 = this;
+            var _this18 = this;
 
             // load source picture
             this.picture = new Image();
             this.picture.onload = function () {
-                if (!_this10.loaded) {
-                    _this10.emitter.emit('load');
-                    _this10.loaded = true;
+                if (!_this18.loaded) {
+                    _this18.emitter.emit('load');
+                    _this18.loaded = true;
                 }
-                _this10._draw();
+                _this18._draw();
             };
             this.picture.src = this._selectPicture();
             console.log(this.picture.src);
@@ -628,16 +867,11 @@ var Spritz = function () {
         key: '_drawPicture',
         value: function _drawPicture() {
             // draw picture into canvas
-            var targetColumn = this.step % this.columns;
-            var targetRow = Math.ceil(this.step / this.columns);
+            var targetColumn = (this.currentStep - 1) % this.columns;
+            var targetRow = Math.floor((this.currentStep - 1) / this.columns);
 
-            var posX = (targetColumn - 1) * this.stepWidth;
-            var posY = (targetRow - 1) * this.stepHeight;
-
-            console.log(targetColumn);
-            console.log(targetRow);
-            console.log(posX);
-            console.log(posY);
+            var posX = targetColumn * this.stepWidth;
+            var posY = targetRow * this.stepHeight;
 
             this.ctx.drawImage(this.picture, posX, posY, this.stepWidth, this.stepHeight, 0, 0, this.canvasWidth, this.canvasHeight);
         }
@@ -646,8 +880,13 @@ var Spritz = function () {
         value: function _createCanvas() {
             // create html5 canvas
             this.canvas = document.createElement('canvas');
-            this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;z-index:1;transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);');
-            this.selector.appendChild(this.canvas);
+            this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;z-index:1;-webkit-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);-ms-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);');
+
+            this.container = document.createElement('div');
+            this.container.setAttribute('style', 'width:100%;height:100%;');
+            this.container.appendChild(this.canvas);
+
+            this.selector.appendChild(this.container);
             this.ctx = this.canvas.getContext('2d');
         }
     }]);

@@ -47,6 +47,7 @@
     },
 
     "dependencies": {
-        "knot.js": "^1.1.1"
+        "knot.js": "^1.1.1",
+        "wait.js": "^2.0.0"
     }
 }

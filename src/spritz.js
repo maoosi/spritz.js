@@ -1,5 +1,5 @@
 import knot from 'knot.js'
-import Wait from './wait.js'
+import Wait from 'wait.js'
 
 export default class Spritz {
 
@@ -35,8 +35,11 @@ export default class Spritz {
         this.canvas = false
         this.ctx = false
         this.loaded = false
-
+        this._resetUntil()
+        this.anim = false
         this.columns = this.options.steps / this.options.rows
+        this.currentFps = 15
+        this.flipped = false
     }
 
     _throttle (callback, delay) {
@@ -89,7 +92,8 @@ export default class Spritz {
     init (step = 1) {
     // init vars, canvas, and snake
         if (!this.initiated) {
-            this.step = step
+            this.initialStep = step
+            this.currentStep = step
 
             this._globalVars()
             this._bindEvents()
@@ -113,6 +117,7 @@ export default class Spritz {
 
                 // reset & remove canvas
                 this.canvas.parentNode.removeChild(this.canvas)
+                this.container.parentNode.removeChild(this.container)
                 this.canvas = false
                 this.ctx = false
 
@@ -138,10 +143,11 @@ export default class Spritz {
         return this
     }
 
-    play (fps) {
-    // play animation
+    play () {
+    // play animation forward
         this.waitter.handle(() => {
-            this._playAnimation()
+            this.animDirection = 'forward'
+            this._startAnimation()
 
             console.log('playing')
 
@@ -151,10 +157,11 @@ export default class Spritz {
         return this
     }
 
-    playback (fps) {
-    // play animation
+    playback () {
+    // play animation backward
         this.waitter.handle(() => {
-            this._playAnimation()
+            this.animDirection = 'backward'
+            this._startAnimation()
 
             console.log('playing backwards')
 
@@ -182,7 +189,7 @@ export default class Spritz {
     // stop animation
         this.waitter.handle(() => {
             this.pause(true)
-            this._resetAnimation()
+            this.step(this.initialStep)
 
             console.log('stopped')
 
@@ -203,10 +210,88 @@ export default class Spritz {
     }
 
     step (step = 1) {
-    // Change the current frame/step
+    // change the current frame/step
         this.waitter.handle(() => {
-            this.step = step
+            this.currentStep = step
             this._draw()
+
+            this.emitter.emit('change')
+        })
+
+        return this
+    }
+
+    fps (speed) {
+    // change animation speed
+        this.waitter.handle(() => {
+            this.currentFps = speed
+        })
+
+        return this
+    }
+
+    until (step, loop = 1) {
+    // next animation will stop at this
+        this.waitter.handle(() => {
+            this.stopAtStep = step
+            this.stopAtLoop = loop
+        })
+
+        return this
+    }
+
+    next () {
+    // go to the next frame
+        this.waitter.handle(() => {
+            this.animDirection = 'forward'
+            this.currentStep = this._targetStep()
+            this._draw()
+
+            this.emitter.emit('next')
+        })
+
+        return this
+    }
+
+    prev () {
+    // go to the previous frame
+        this.waitter.handle(() => {
+            this.animDirection = 'backward'
+            this.currentStep = this._targetStep()
+            this._draw()
+
+            this.emitter.emit('prev')
+        })
+
+        return this
+    }
+
+    get (data, callback = false) {
+    // return data, then call the callback function with result
+        this.waitter.handle(() => {
+            switch (data) {
+                case 'step':
+                    return callback !== false ? callback.call(this, this.currentStep) : this.currentStep
+                case 'picture':
+                    return callback !== false ? callback.call(this, this.pic) : this.pic
+                default:
+                    return false
+            }
+        })
+
+        return this
+    }
+
+    flip () {
+    // flip the canvas on horizontal axis
+        this.waitter.handle(() => {
+            let css = this.flipped
+                ? 'width:100%;height:100%;'
+                : 'width:100%;height:100%;-webkit-transform:scale(-1, 1);-ms-transform:scale(-1, 1);transform:scale(-1, 1);-webkit-filter:FlipH;filter:FlipH;'
+
+            this.container.setAttribute('style', css)
+            this.flipped = !this.flipped
+            this.emitter.emit('flip')
         })
 
         return this
@@ -220,24 +305,75 @@ export default class Spritz {
         --- ANIMATE ---
     **/
 
-    _resetAnimation () {
-    // reset animation to its initial state
-
+    _resetUntil () {
+    // reset "until()" command
+        this.stopAtLoop = false
+        this.stopAtStep = false
     }
 
-    _playAnimation () {
+    _targetStep () {
+    // return following step to display
+        if (this.animDirection === 'forward') {
+            return this.currentStep < this.options.steps
+                ? this.currentStep + 1
+                : 1
+        } else {
+            return this.currentStep > 1
+                ? this.currentStep - 1
+                : this.options.steps
+        }
+    }
+
+    _animate (timestamp) {
+    // frame animation
+        if (this.animTime === undefined) {
+            this.animTime = timestamp
+        }
+
+        let seg = Math.floor((timestamp - this.animTime) / (1000 / this.currentFps))
+        let pauseAnim = false
+
+        if (seg > this.animFrame) {
+            this.animFrame = seg
+            this.currentStep = this._targetStep()
+
+            let draw = true
+            if (this.currentStep === this.stopAtStep) {
+                this.currentLoop ++
+                if (this.currentLoop === this.stopAtLoop) {
+                    draw = false
+                }
+            }
+
+            if (draw) {
+                this._draw()
+            } else {
+                this.pause()
+                pauseAnim = true
+            }
+        }
+
+        if (!pauseAnim) {
+            this.anim = window.requestAnimationFrame((timestamp) => this._animate(timestamp))
+        }
+    }
+
+    _startAnimation () {
     // start animation
-        this.anim = window.requestAnimationFrame((timestamp) => {
-            // this._animStep(timestamp)
-        })
+        if (!this.anim) {
+            this.animTime = undefined
+            this.animFrame = -1
+            this.currentLoop = 0
+            this.anim = window.requestAnimationFrame((timestamp) => this._animate(timestamp))
+        }
     }
 
     _pauseAnimation () {
     // pause animation
         if (this.anim) {
+            this._resetUntil()
             window.cancelAnimationFrame(this.anim)
             this.anim = false
-            this.animStarter = false
         }
     }
 
@@ -329,16 +465,11 @@ export default class Spritz {
 
     _drawPicture () {
     // draw picture into canvas
-        let targetColumn = this.step % this.columns
-        let targetRow = Math.ceil(this.step / this.columns)
+        let targetColumn = (this.currentStep - 1) % this.columns
+        let targetRow = Math.floor((this.currentStep - 1) / this.columns)
 
-        let posX = (targetColumn - 1) * this.stepWidth
-        let posY = (targetRow - 1) * this.stepHeight
-
-        console.log(targetColumn)
-        console.log(targetRow)
-        console.log(posX)
-        console.log(posY)
+        let posX = targetColumn * this.stepWidth
+        let posY = targetRow * this.stepHeight
 
         this.ctx.drawImage(
             this.picture,
@@ -354,8 +485,13 @@ export default class Spritz {
     _createCanvas () {
     // create html5 canvas
         this.canvas = document.createElement('canvas')
-        this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;z-index:1;transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);')
-        this.selector.appendChild(this.canvas)
+        this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;z-index:1;-webkit-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);-ms-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);')
+
+        this.container = document.createElement('div')
+        this.container.setAttribute('style', 'width:100%;height:100%;')
+        this.container.appendChild(this.canvas)
+
+        this.selector.appendChild(this.container)
         this.ctx = this.canvas.getContext('2d')
     }
 
