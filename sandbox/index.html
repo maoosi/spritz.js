@@ -47,20 +47,33 @@
         	rows: 3
         }).init(2)
 
+        sprite.on('resize', (pic) => {
+            console.log(pic)
+        })
+
+        sprite.on('change', (step) => {
+            console.log(step)
+        })
+
         sprite.on('load', () => {
             let logger = false
 
             sprite
+                .play()
+                .wait(1000)
+                .pause()
                 .wait(1000)
                 .next()
+                // .wait(1000)
+                // .next()
                 // .get('step', (result) => { console.log(result) })
                 // .get('picture', (result) => { console.log(result) })
-                .wait(1000)
-                .flip()
-                .next()
-                .wait(1000)
-                .flip()
-                .prev()
+                // .wait(1000)
+                // .flip()
+                // .next()
+                // .wait(1000)
+                // .flip()
+                // .prev()
                 // .fps(10)
                 // .until(8, 2)
                 // .play()

@@ -80,7 +80,7 @@ export default class Spritz {
     _resize () {
     // viewport resize triggered
         this._loadPicture()
-        this.emitter.emit('resize')
+        this.emitter.emit('resize', this.pic)
     }
 
     /**
@@ -142,15 +142,13 @@ export default class Spritz {
         return this
     }
 
-    play () {
+    play (direction = false) {
     // play animation forward
         this.waitter.handle(() => {
-            this.animDirection = 'forward'
+            this.animDirection = (direction == 'backward') ? 'backward' : 'forward'
             this._startAnimation()
 
-            console.log('playing')
-
-            this.emitter.emit('play')
+            this.emitter.emit('play', this.animDirection)
         })
 
         return this
@@ -162,9 +160,7 @@ export default class Spritz {
             this.animDirection = 'backward'
             this._startAnimation()
 
-            console.log('playing backwards')
-
-            this.emitter.emit('play')
+            this.emitter.emit('play', this.animDirection)
         })
 
         return this
@@ -176,7 +172,6 @@ export default class Spritz {
             this._pauseAnimation()
 
             if (!silent) {
-                console.log('paused')
                 this.emitter.emit('pause')
             }
         })
@@ -190,8 +185,6 @@ export default class Spritz {
             this.pause(true)
             this.step(this.initialStep)
 
-            console.log('stopped')
-
             this.emitter.emit('stop')
         })
 
@@ -201,8 +194,7 @@ export default class Spritz {
     wait (milliseconds = 0) {
     // chainable timeout
         this.waitter.handle(() => {
-            this.emitter.emit('wait')
-            console.log('waiting for ' + milliseconds + 'ms')
+            this.emitter.emit('wait', milliseconds)
         }, milliseconds)
 
         return this
@@ -211,10 +203,11 @@ export default class Spritz {
     step (step = 1) {
     // change the current frame/step
         this.waitter.handle(() => {
+            let fromStep = this.currentStep
             this.currentStep = step
             this._draw()
 
-            this.emitter.emit('change')
+            this.emitter.emit('change', fromStep, this.currentStep)
         })
 
         return this
@@ -243,10 +236,11 @@ export default class Spritz {
     // go to the next frame
         this.waitter.handle(() => {
             this.animDirection = 'forward'
+            let fromStep = this.currentStep
             this.currentStep = this._targetStep()
             this._draw()
 
-            this.emitter.emit('change')
+            this.emitter.emit('change', fromStep, this.currentStep)
         })
 
         return this
@@ -256,10 +250,11 @@ export default class Spritz {
     // go to the previous frame
         this.waitter.handle(() => {
             this.animDirection = 'backward'
+            let fromStep = this.currentStep
             this.currentStep = this._targetStep()
             this._draw()
 
-            this.emitter.emit('change')
+            this.emitter.emit('change', fromStep, this.currentStep)
         })
 
         return this
@@ -447,13 +442,12 @@ export default class Spritz {
         this.picture = new Image()
         this.picture.onload = () => {
             if (!this.loaded) {
-                this.emitter.emit('load')
+                this.emitter.emit('load', this.pic)
                 this.loaded = true
             }
             this._draw()
         }
         this.picture.src = this._selectPicture()
-        console.log(this.picture.src)
     }
 
     _draw () {

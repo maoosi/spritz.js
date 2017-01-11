@@ -316,8 +316,6 @@ var Spritz = function () {
         // instance constructor
         this.options = {
             picture: options.picture || [],
-            width: options.width || 0,
-            height: options.height || 0,
             steps: options.steps || 1,
             rows: options.rows || 1
         };
@@ -396,7 +394,7 @@ var Spritz = function () {
         value: function _resize() {
             // viewport resize triggered
             this._loadPicture();
-            this.emitter.emit('resize');
+            this.emitter.emit('resize', this.pic);
         }
 
         /**
@@ -419,7 +417,7 @@ var Spritz = function () {
                 this._loadPicture();
 
                 this.initiated = true;
-                this.emitter.emit('init');
+                this.emitter.emit('ready');
             }
 
             return this;
@@ -449,14 +447,11 @@ var Spritz = function () {
                     _this3.emitter.emit('destroy');
 
                     // turn off emitters
-                    _this3.emitter.off('init');
+                    _this3.emitter.off('ready');
                     _this3.emitter.off('destroy');
                     _this3.emitter.off('resize');
                     _this3.emitter.off('play');
                     _this3.emitter.off('load');
-                    _this3.emitter.off('playback');
-                    _this3.emitter.off('prev');
-                    _this3.emitter.off('next');
                     _this3.emitter.off('change');
                     _this3.emitter.off('wait');
                     _this3.emitter.off('flip');
@@ -472,14 +467,14 @@ var Spritz = function () {
         value: function play() {
             var _this4 = this;
 
+            var direction = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
             // play animation forward
             this.waitter.handle(function () {
-                _this4.animDirection = 'forward';
+                _this4.animDirection = direction == 'backward' ? 'backward' : 'forward';
                 _this4._startAnimation();
 
-                console.log('playing');
-
-                _this4.emitter.emit('play');
+                _this4.emitter.emit('play', _this4.animDirection);
             });
 
             return this;
@@ -494,9 +489,7 @@ var Spritz = function () {
                 _this5.animDirection = 'backward';
                 _this5._startAnimation();
 
-                console.log('playing backwards');
-
-                _this5.emitter.emit('playback');
+                _this5.emitter.emit('play', _this5.animDirection);
             });
 
             return this;
@@ -513,7 +506,6 @@ var Spritz = function () {
                 _this6._pauseAnimation();
 
                 if (!silent) {
-                    console.log('paused');
                     _this6.emitter.emit('pause');
                 }
             });
@@ -530,8 +522,6 @@ var Spritz = function () {
                 _this7.pause(true);
                 _this7.step(_this7.initialStep);
 
-                console.log('stopped');
-
                 _this7.emitter.emit('stop');
             });
 
@@ -546,8 +536,7 @@ var Spritz = function () {
 
             // chainable timeout
             this.waitter.handle(function () {
-                _this8.emitter.emit('wait');
-                console.log('waiting for ' + milliseconds + 'ms');
+                _this8.emitter.emit('wait', milliseconds);
             }, milliseconds);
 
             return this;
@@ -561,10 +550,11 @@ var Spritz = function () {
 
             // change the current frame/step
             this.waitter.handle(function () {
+                var fromStep = _this9.currentStep;
                 _this9.currentStep = _step;
                 _this9._draw();
 
-                _this9.emitter.emit('change');
+                _this9.emitter.emit('change', fromStep, _this9.currentStep);
             });
 
             return this;
@@ -604,10 +594,11 @@ var Spritz = function () {
             // go to the next frame
             this.waitter.handle(function () {
                 _this12.animDirection = 'forward';
+                var fromStep = _this12.currentStep;
                 _this12.currentStep = _this12._targetStep();
                 _this12._draw();
 
-                _this12.emitter.emit('next');
+                _this12.emitter.emit('change', fromStep, _this12.currentStep);
             });
 
             return this;
@@ -620,10 +611,11 @@ var Spritz = function () {
             // go to the previous frame
             this.waitter.handle(function () {
                 _this13.animDirection = 'backward';
+                var fromStep = _this13.currentStep;
                 _this13.currentStep = _this13._targetStep();
                 _this13._draw();
 
-                _this13.emitter.emit('prev');
+                _this13.emitter.emit('change', fromStep, _this13.currentStep);
             });
 
             return this;
@@ -858,13 +850,12 @@ var Spritz = function () {
             this.picture = new Image();
             this.picture.onload = function () {
                 if (!_this18.loaded) {
-                    _this18.emitter.emit('load');
+                    _this18.emitter.emit('load', _this18.pic);
                     _this18.loaded = true;
                 }
                 _this18._draw();
             };
             this.picture.src = this._selectPicture();
-            console.log(this.picture.src);
         }
     }, {
         key: '_draw',
