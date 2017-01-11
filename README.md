@@ -32,7 +32,7 @@
 4. [API](#api)
 5. [Events](#events)
 6. [Browser Support](#browser-support)
-7. [Projects Using Spritz](#projects-using-it)
+7. [Projects Using It](#projects-using-it-)
 8. [License](#license)
 
 ## Installation
