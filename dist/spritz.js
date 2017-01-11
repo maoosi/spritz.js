@@ -408,7 +408,7 @@ var Spritz = function () {
         value: function init() {
             var step = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
 
-            // init vars, canvas, and snake
+            // init the sprite
             if (!this.initiated) {
                 this.initialStep = step;
                 this.currentStep = step;
@@ -429,7 +429,7 @@ var Spritz = function () {
         value: function destroy() {
             var _this3 = this;
 
-            // destroy snake & instance
+            // destroy sprite instance
             this.waitter.handle(function () {
                 if (_this3.initiated) {
                     // stop stuff
@@ -455,7 +455,11 @@ var Spritz = function () {
                     _this3.emitter.off('play');
                     _this3.emitter.off('load');
                     _this3.emitter.off('playback');
+                    _this3.emitter.off('prev');
+                    _this3.emitter.off('next');
+                    _this3.emitter.off('change');
                     _this3.emitter.off('wait');
+                    _this3.emitter.off('flip');
                     _this3.emitter.off('pause');
                     _this3.emitter.off('stop');
                 }
@@ -504,7 +508,7 @@ var Spritz = function () {
 
             var silent = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
-            // stop animation
+            // pause animation
             this.waitter.handle(function () {
                 _this6._pauseAnimation();
 
@@ -521,7 +525,7 @@ var Spritz = function () {
         value: function stop() {
             var _this7 = this;
 
-            // stop animation
+            // stop animation (= pause + reset)
             this.waitter.handle(function () {
                 _this7.pause(true);
                 _this7.step(_this7.initialStep);
@@ -650,7 +654,7 @@ var Spritz = function () {
         value: function flip() {
             var _this15 = this;
 
-            // flip the canvas on horizontal axis
+            // flip the sprite horizontally
             this.waitter.handle(function () {
                 var css = _this15.flipped ? 'width:100%;height:100%;' : 'width:100%;height:100%;-webkit-transform:scale(-1, 1);-ms-transform:scale(-1, 1);transform:scale(-1, 1);-webkit-filter:FlipH;filter:FlipH;';
 
@@ -690,14 +694,14 @@ var Spritz = function () {
     }, {
         key: '_resetUntil',
         value: function _resetUntil() {
-            // reset "until()" command
+            // reset the "until()" api command
             this.stopAtLoop = false;
             this.stopAtStep = false;
         }
     }, {
         key: '_targetStep',
         value: function _targetStep() {
-            // return following step to display
+            // return the following step to be displayed
             if (this.animDirection === 'forward') {
                 return this.currentStep < this.options.steps ? this.currentStep + 1 : 1;
             } else {
@@ -804,7 +808,7 @@ var Spritz = function () {
     }, {
         key: '_getExtension',
         value: function _getExtension(filename) {
-            // return filename extension
+            // return the filename extension
             return (/[.]/.exec(filename) ? /[^.]+$/.exec(filename)[0] : undefined
             );
         }

@@ -11,8 +11,6 @@ export default class Spritz {
     // instance constructor
         this.options = {
             picture: options.picture || [],
-            width: options.width || 0,
-            height: options.height || 0,
             steps: options.steps || 1,
             rows: options.rows || 1
         }
@@ -90,7 +88,7 @@ export default class Spritz {
     **/
 
     init (step = 1) {
-    // init vars, canvas, and snake
+    // init the sprite
         if (!this.initiated) {
             this.initialStep = step
             this.currentStep = step
@@ -101,14 +99,14 @@ export default class Spritz {
             this._loadPicture()
 
             this.initiated = true
-            this.emitter.emit('init')
+            this.emitter.emit('ready')
         }
 
         return this
     }
 
     destroy () {
-    // destroy snake & instance
+    // destroy sprite instance
         this.waitter.handle(() => {
             if (this.initiated) {
                 // stop stuff
@@ -128,13 +126,14 @@ export default class Spritz {
                 this.emitter.emit('destroy')
 
                 // turn off emitters
-                this.emitter.off('init')
+                this.emitter.off('ready')
                 this.emitter.off('destroy')
                 this.emitter.off('resize')
                 this.emitter.off('play')
                 this.emitter.off('load')
-                this.emitter.off('playback')
+                this.emitter.off('change')
                 this.emitter.off('wait')
+                this.emitter.off('flip')
                 this.emitter.off('pause')
                 this.emitter.off('stop')
             }
@@ -165,14 +164,14 @@ export default class Spritz {
 
             console.log('playing backwards')
 
-            this.emitter.emit('playback')
+            this.emitter.emit('play')
         })
 
         return this
     }
 
     pause (silent = false) {
-    // stop animation
+    // pause animation
         this.waitter.handle(() => {
             this._pauseAnimation()
 
@@ -186,7 +185,7 @@ export default class Spritz {
     }
 
     stop () {
-    // stop animation
+    // stop animation (= pause + reset)
         this.waitter.handle(() => {
             this.pause(true)
             this.step(this.initialStep)
@@ -247,7 +246,7 @@ export default class Spritz {
             this.currentStep = this._targetStep()
             this._draw()
 
-            this.emitter.emit('next')
+            this.emitter.emit('change')
         })
 
         return this
@@ -260,7 +259,7 @@ export default class Spritz {
             this.currentStep = this._targetStep()
             this._draw()
 
-            this.emitter.emit('prev')
+            this.emitter.emit('change')
         })
 
         return this
@@ -283,7 +282,7 @@ export default class Spritz {
     }
 
     flip () {
-    // flip the canvas on horizontal axis
+    // flip the sprite horizontally
         this.waitter.handle(() => {
             let css = this.flipped
                 ? 'width:100%;height:100%;'
@@ -306,13 +305,13 @@ export default class Spritz {
     **/
 
     _resetUntil () {
-    // reset "until()" command
+    // reset the "until()" api command
         this.stopAtLoop = false
         this.stopAtStep = false
     }
 
     _targetStep () {
-    // return following step to display
+    // return the following step to be displayed
         if (this.animDirection === 'forward') {
             return this.currentStep < this.options.steps
                 ? this.currentStep + 1
@@ -407,7 +406,7 @@ export default class Spritz {
     }
 
     _getExtension (filename) {
-    // return filename extension
+    // return the filename extension
         return (/[.]/.exec(filename)) ? /[^.]+$/.exec(filename)[0] : undefined
     }
 
