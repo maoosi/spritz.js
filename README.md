@@ -1,31 +1,39 @@
 # Spritz.js
 
-A small, modern, responsive, **sprites animation library**.
+🚀 A small, modern, responsive, **sprites animation library**.
 
-🚀 Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).
+**Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).**
+
+> **Spritz.js 2.0**: For this new version, the library has been completely rewritten from scratch. This means that version 2.x is not compatible with the version 1.x.
+> 
+> --
+> 
+> ***Why rewritting everything from scratch?***
+> 
+> *In order to propose better perfomances and support (by using a Canvas drawing approach instead of CSS only), images responsivity (by using a syntax close to the new HTML5 "picture" element), and more flexibility for designing animations (through a chainable API with timers).*
+
 
 ## Features
 
-**Can be used for:** 360 viewers, products animation, interactive experiences, html5 games...
+**Can be used for:** 360 viewers, interactive animations, HTML5 games...
 
-* **Accessible** - full support for screen readers
-* **Lightweight** - under 13KB minified and gzipped
-* **Responsive** - multiple built-in display modes
+* **Lightweight** - under 6KB minified and gzipped
+* **Responsive** - syntax following the new HTML5 "picture" element
 * **Modern** - written in ES6 JavaScript, no jQuery required
-* **[Compatible](#browser-support)** - IE9+ support, mobile support
-* **[API / Events](#api--events)** - play, pause, wait, and more
+* **[Compatible](#browser-support)** - IE8+ support, mobile support
+* **[Chainable API](#api)** - play, pause, wait, and more...
 
-Oh and yes, it is compatible with [ScrollMagic](http://scrollmagic.io).
 
 ## Getting Started
 
 1. [Installation](#installation)
 2. [Usage](#usage)
 3. [Options](#options)
-4. [API / Events](#api--events)
-5. [Browser Support](#browser-support)
-6. [Projects Using Spritz](#projects-using-spritz)
-7. [License](#license)
+4. [API](#api)
+5. [Events](#events)
+6. [Browser Support](#browser-support)
+7. [Projects Using Spritz](#projects-using-it)
+8. [License](#license)
 
 ## Installation
 
@@ -37,7 +45,7 @@ npm i spritz.js --save
 
 ### jsDelivr CDN
 
-```bash
+```html
 <script src="https://cdn.jsdelivr.net/spritz.js/2.0.0/spritz.js"></script>
 ```
 
@@ -45,14 +53,16 @@ npm i spritz.js --save
 
 ```javascript
 // ES6 module import
-import Spritz from 'spritz.js' // not required if using a CDN or directly include
+import Spritz from 'spritz.js'
 
 // instantiate with options
 const sprite = new Spritz('#selector', { /* options here */ })
 
-// basic usage: build & load the sprite
+// build and display the sprite
 sprite.init()
 ```
+
+> A module export version is also available from `spritz.module.js`
 
 ## Options
 
@@ -60,14 +70,9 @@ Settings overview list:
 
 ```javascript
 Spritz('#selector', {
-	src: 'path/to/sprite.png',
-    mask: 'path/to/mask.png',
-	width: 6470,
-	height: 3096,
-	steps: 18,
-	rows: 4,
-	display: 'fluid',
-	ariaLabel: 'Sprite image used for presentation purpose'
+	picture: [],
+	steps: 1,
+	rows: 1
 })
 ```
 
@@ -75,221 +80,235 @@ Option details are detailed below.
 
 Option | Type | Default | Description
 ---|---|---|---
-`thickness` | *integer* | `22` | Thickness of the snake body (the snake body is made of multiple squares, where thickness represents the width and height of each square).
-`color` | *string or array* | `red` | Color of the snake body (RGB or hexadecimal). Can be a single color `#3498db`, or a two colors gradient by using a array[2] `['#0000ff', '#ffffff']`.
-`length` | *integer* | `10` | Length of the snake body or tail length (also represents the number of squares that the body is made of).
-`speed` | *integer* | `15` | Speed of the snake animation (FPS).
+`picture` | *array* | `[]` | Array of picture objects to be used as Sprite. The syntax is close to the new HTML5 "picture" element. [More details below.](#picture)
+`steps` | *integer* | `1` | Number of steps (or frames) composing the sprite.
+`rows` | *integer* | `1` | Number of rows (or lines) composing the sprite.
 
-## API / Events
+### Picture
 
-Spritz exposes the following methods, and corresponding events:
+The `picture` option syntax is close to the new HTML5 "picture" element. The library will choose the most suitable source according to the current layout of the page and the device it will be displayed on. Sens of reading is following the array order (first to last element).
+
+**Parameters:**
+
+Key | Type | Description
+---|---|---|---
+`srcset` | required | Accepts a single image file path (e.g. `srcset: 'kitten.png'`). WebP format accepted for compatible browsers (built-in detection).
+`media ` | optional | Accepts any valid media query that you would normally find in a CSS @media selector (e.g. `media: '(max-width: 1200px)'`).
+`width ` | required | Specify the full width in pixels, of the sprite source image (e.g. `width: 7800`).
+`height ` | required | Specify the full width in pixels, of the sprite source image (e.g. `height: 2829`).
+
+**Example:**
+
+```javascript
+[
+	{
+		srcset: 'kitten-highres.png',
+		media: '(min-width: 1200px)',
+		width: 7800, height: 2829
+	},
+	{
+		srcset: 'kitten.webp',
+		width: 3900, height: 1415
+	},
+	{
+		srcset: 'kitten.png',
+		width: 3900, height: 1415
+	}
+]
+```
+
+
+## API
+
+Spritz exposes the following chainable API methods.
 
 * [init](#init)
 * [destroy](#destroy)
-* [play](#playfps-direction)
+* [fps](#fps)
+* [play](#play)
+* [playback](#playback)
 * [pause](#pause)
 * [stop](#stop)
-* [changeStep](#changestepstep)
-* [changeProgress](#changeprogressprogressvalue)
+* [wait](#wait)
+* [step](#step)
+* [until](#until)
 * [flip](#flip)
-* [getCurrentStep](#getcurrentstep) (not chainable)
-* [isMaskingSupported](#ismaskingsupported) (not chainable)
-
-Note that **all methods** *(Except the ones specified above)*, **including those from the event emitter, are chainable**.
+* [get](#get)
 
 ### .init()
 
-Used to initiate the _sprite build_ **AND** the _sprite load_, within the container.
+Build and load the sprite, within its selector. Inital step can be passed as parameter.
 
 ```javascript
-// build & load the sprite
-instance.init()
-
-// 'init' is emitted AFTER the sprite has been loaded and built into the viewport
-instance.on('init', () => {
-  // ...
-})
-```
-
-### .load()
-
-Used to _preload the sprite image_. It allows you to manually load a heavy sprite, without displaying it.
-
-```javascript
-// load the sprite image
-instance.load()
-
-// 'load' is emitted AFTER the sprite has been loaded
-instance.on('load', () => {
-  // ...
-})
-```
-
-### .build()
-
-Used to _build the DOM structure and the CSS properties_. Then, display the sprite into the user viewport.
-
-```javascript
-// build the DOM and the CSS. Then, display the sprite
-instance.build()
-
-// 'build' is emitted AFTER the sprite has been built into the viewport
-instance.on('build', () => {
-  // ...
-})
+sprite.init() // Basic usage
+sprite.init(2) // Initial step is 2 (default = 1)
 ```
 
 ### .destroy()
 
-Used to _completely destroy the sprite element and behaviors_. Restore the intial state.
+Completely destroy the sprite element and behaviors. Restore the intial state.
 
 ```javascript
-// destroy completely the sprite, and restore initial state
-instance.destroy()
-
-// 'destroy' is emitted AFTER the sprite has been destroyed
-instance.on('destroy', () => {
-  // ...
-})
+sprite.destroy()
 ```
 
-### .play(fps, direction)
+### .fps()
 
-Used to _start sprite loop animation_. Useful for playing infinite loop animations.
-
-**Parameters:**
-
-* fps (integer): frames per second. Default: 12
-* direction (string): "forward" OR "backward". Default: "forward"
+Change animation speed from its default value (15).
 
 ```javascript
-// play loop animation with default parameters
-instance.play()
+sprite.fps(10) // Change speed to 10fps
+```
 
-// play loop animation at 25 fps, 'backward'
-instance.play(25, 'backward')
+### .play()
 
-// 'play' is emitted AFTER the animation has started
-instance.on('play', () => {
-  // ...
-})
+Play animation forward (using the current fps value).
+
+```javascript
+sprite.play()
+```
+
+### .playback()
+
+Play animation backward (using the current fps value).
+
+```javascript
+sprite.playback()
 ```
 
 ### .pause()
 
-Used to _pause sprite loop animation_.
+Pause the current animation.
 
 ```javascript
-// pause loop animation
-instance.pause()
-
-// 'pause' is emitted AFTER the animation loop has paused
-instance.on('pause', () => {
-  // ...
-})
+sprite.pause()
 ```
 
 ### .stop()
 
-Used to _stop and reset the sprite loop animation_ to its initial step.
+Stop the current animation (pause and reset to the initial step).
 
 ```javascript
-// stop loop animation
-instance.stop()
-
-// 'stop' is emitted AFTER the animation loop has stopped
-instance.on('stop', () => {
-  // ...
-})
+sprite.stop()
 ```
 
-### .changeStep(step)
+### .wait()
 
-Used to _change the current active step of the sprite_.
-
-**Parameters:**
-
-* step (integer): step / frame number. Default: 1
-	* |-- Also support keywords "previous" and "next".
+Chainable timeout that can be used to delay stuff. The delay value is to be passed as parameter, in milliseconds.
 
 ```javascript
-// change the current active step to 3
-instance.changeStep(3)
+sprite.wait(1000) // Wait for 1 second
 
-// change the current active step to the previous step
-instance.changeStep('previous')
-
-// 'change' is emitted AFTER the sprite step has been changed
-instance.on('change', () => {
-  // ...
-})
+/* Usage example */
+sprite
+	.play() // Play animation
+	.wait(2000) // Then wait for 2 second
+	.stop() // Then stop animation
 ```
 
-### .changeProgress(progressValue)
+### .step()
 
-Used to _change the current progress step of the sprite_. First step / frame is 0. Last step / frame is 1. This can be useful if you want to combine Spritz and Scroll Magic with custom actions (cf: http://scrollmagic.io/examples/basic/custom_actions.html).
-
-**Parameters:**
-
-* progressValue (float): progress value between 0 and 1. Default: 0
+Change the current step (or frame) of the sprite. Target step to be passed as parameter.
 
 ```javascript
-// change the current progress to 0.2 (20%)
-instance.changeProgress(0.2)
+sprite.step(5) // Change current step/frame to 5
+```
 
-// 'change' is emitted AFTER the sprite step has been changed
-instance.on('change', () => {
-  // ...
-})
+### .until()
+
+The next animation will automatically pause at the value specified. Two parameters can be used:
+
+- step (required): Step/frame at which the animation should stop.
+- loop (optional, default 1): Loop at which the animation should stop.
+
+```javascript
+sprite.until(7) // Animation will automatically stop at step/frame 7
+sprite.until(3, 2) // Animation will automatically stop at step/frame 3, on the second loop
+
+/* Usage example */
+sprite	
+	.until(7) // Stop following animation at step/frame 7
+	.play() // Play animation (will automatically stop at step/frame 7)
 ```
 
 ### .flip()
 
-Used to _flip the sprite / horizontally mirror the sprite_.
+Flip the sprite horizontally.
 
 ```javascript
-// flip the sprite
-instance.flip()
+sprite.flip()
 ```
 
-### .getCurrentStep()
+### .get()
 
-Return the current active step / frame of the sprite.
+Return data, then call the callback function with result. Two parameters can be used:
+
+- data (required): Data to return. Possible values: `step`| `picture`.
+- callback (optional): Callback function to be called with result as first parameter.
 
 ```javascript
-// Get the current sprite step
-instance.getCurrentStep()
+// console log the current step/frame
+sprite.get('step', (currentStep) => {
+	console.log(currentStep)
+})
+
+// console log the current picture in use
+sprite.get('picture', (pic) => {
+	console.log(pic)
+})
 ```
 
-### .isMaskingSupported()
+> Note that this method, like the others, is chainable.
 
-Return true or false, depending if the masking feature is supported by the browser or not.
+## Events
 
-> **To perfom the masking, Spritz uses SVG containers with mask elements.** Support based on http://caniuse.com/#feat=svg
+The following events can be used to write custom callbacks functions.
 
 ```javascript
-// Test if masking is supported
-instance.isMaskingSupported()
+// Sprite is ready for use (after init)
+sprite.on('ready', () => { /* Your code here */ })
+
+// Sprite image has been loaded (current 'picture' loaded passed as parameter)
+sprite.on('load', (picture) => { /* Your code here */ })
+
+// Sprite has been destroyed
+sprite.on('destroy', () => { /* Your code here */ })
+
+// Sprite animation start ('forward' or 'backward' passed as first parameter)
+sprite.on('play', (direction) => { /* Your code here */ })
+
+// Sprite animation pause
+sprite.on('pause', () => { /* Your code here */ })
+
+// Sprite animation stop
+sprite.on('stop', () => { /* Your code here */ })
+
+// Animation timeout delay in  progress ('delay' value passed as parameter)
+sprite.on('wait', (delay) => { /* Your code here */ })
+
+// Step changed manually ('from' and 'to' passed as parameters)
+sprite.on('change', (from, to) => { /* Your code here */ })
 ```
 
 ## Browser Support
 
-Spritz is fully supported by **Evergreen Browsers** (Edge, Opera, Safari, Firefox & Chrome) and IE 10+ browsers.
+Fully supported by Evergreen Browsers (Edge, Opera, Safari, Firefox & Chrome) and IE 10+ browsers.
 
-**Few notes about compatibility:**
+> For **old browsers support like IE8 or IE9**, you'll need to manually include the following Polyfill library on your website:
+> 
+```html
+<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+```
 
-* There is known issues with **Safari** and SVG's that makes rendering very slow. Thereby, masking is disabled for Safari.
-* If your browser **doesn't support SVG**, spritz.js will gracefully disable masking.
-* In order to limit data usage on **mobile devices**, proxy replacement has been disabled by default.
-* For **old browser support like IE 9**, you'll need to manually add the classList polyfill into your project (https://github.com/eligrey/classList.js/)
 
-## Projects Using Spritz
+## Projects Using It !
 
-* **Mars Australia** | SNICKERS® Hungerithm | http://www.hungerithm.com
+* **Mars Australia** | M&M’S® Personalise Your Christmas Bucket | https://mms.myer.com.au
 * **TAC Victoria** | Meet Graham | http://www.meetgraham.com.au
+* **Mars Australia** | SNICKERS® Hungerithm | http://www.hungerithm.com
 
 ## License
 
-[MIT](https://github.com/maoosi/spritz.js/blob/master/LICENSE.md) © 2016 Sylvain Simao
+[MIT](https://github.com/maoosi/spritz.js/blob/master/LICENSE.md) © 2017 Sylvain Simao
 
 [![Built With Love](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
