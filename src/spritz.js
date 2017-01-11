@@ -1,649 +1,497 @@
-// A browser-based event emitter - https://github.com/callmecavs/knot.js
 import knot from 'knot.js'
+import Wait from 'wait.js'
 
-export default (options = {}) => {
-    /**
-    * Default settings
-    */
-
-    const settings = {
-        container: options.container || 'body',
-
-        steps: options.steps,
-        initial: options.initial || 1,
-
-        rows: options.rows || 1,
-        width: options.width,
-        height: options.height,
-
-        flip: options.flip || false,
-        displayMode: options.displayMode || 'fluid',
-        breakpoint: options.breakpoint || 640,
-
-        src: options.src,
-        mask: options.mask || false,
-        proxy: options.proxy || false,
-
-        ariaLabel: options.ariaLabel || ''
-    }
-
+export default class Spritz {
 
     /**
-    * Local variables
-    */
+        --- CORE ---
+    **/
 
-    let imageNode = null
-    let mainNode = null
-    let svgNode = null
-    let proxyNode = null
-    let fallbackNode = null
-
-    let proxyImagesList = []
-    let proxyTimeout = null
-    let backgroundSize = null
-    let sprite = {
-        columns: null,
-        width: null,
-        height: null,
-        ratio: null
-    }
-    let currentStep = settings.initial
-    let frameRequest = null
-
-    let isAnimationPlaying = false
-    let elapsedSteps = 0
-
-
-    /**
-    * Series of functions
-    */
-
-    const __build = [
-        _calculations,
-        _generateMain,
-        _generateSVG,
-        _generateProxy,
-        _accessibility,
-        _bindEvents,
-        _generateCSS,
-        flip,
-        _defaultStep
-    ]
-
-    const __init = [
-        load,
-        build
-    ]
-
-    const __refresh = [
-        _generateCSS,
-        flip,
-        _defaultStep
-    ]
-
-
-    /**
-    * Expose public methods
-    * https://github.com/callmecavs/knot.js
-    */
-
-    const instance = knot({
-        init: init,
-        load: load,
-        build: build,
-        refresh: refresh,
-        destroy: destroy,
-        changeStep: changeStep,
-        changeProgress: changeProgress,
-        play: play,
-        pause: pause,
-        stop: stop,
-        getCurrentStep: getCurrentStep,
-        isMaskingSupported: isMaskingSupported,
-        flip: flip
-    })
-
-    return instance
-
-
-    /**
-    * Private helper functions
-    */
-
-    // Run a serie of functions
-    function __runSeries (functions) {
-        return new Promise(function (resolve, reject) {
-            resolve(functions.forEach(func => func()))
-        })
-    }
-
-    // Convert and return the input to camelCase
-    function __camelize (str) {
-        return str.replace(/(\-[a-z])/g, function ($1) {
-            return $1.toUpperCase().replace('-', '')
-        })
-    }
-
-    // Prefix a CSS property
-    function __prefixCss (element, property, value) {
-        let capitalizedProperty = property.charAt(0).toUpperCase() + property.slice(1)
-        element.style['webkit' + capitalizedProperty] = value
-        element.style['moz' + capitalizedProperty] = value
-        element.style['ms' + capitalizedProperty] = value
-        element.style['o' + capitalizedProperty] = value
-        element.style[property] = value
-    }
-
-    // Apply multiple dom attributes at once
-    function __setAttributes (element, attributes) {
-        if (element !== null) {
-            for (let attribute in attributes) {
-                element.setAttribute(attribute, attributes[attribute])
-            }
+    constructor (selector, options = {}) {
+    // instance constructor
+        this.options = {
+            picture: options.picture || [],
+            steps: options.steps || 1,
+            rows: options.rows || 1
         }
+
+        this.selector = typeof selector === 'string'
+            ? document.querySelector(selector)
+            : selector
+
+        this.emitter = knot()
+        this.waitter = new Wait()
+        this.supportsWebP = this._supportsWebP()
+
+        this.initiated = false
+
+        return this
     }
 
-    // Apply multiple CSS rules at once
-    function __setCss (element, rules) {
-        if (element !== null) {
-            for (let rule in rules) {
-                if (rule === 'transform') {
-                    __prefixCss(element, 'transform', rules[rule])
-                } else {
-                    element.style[__camelize(rule)] = rules[rule]
-                }
-            }
-        }
+    _globalVars () {
+    // global vars
+        this.canvas = false
+        this.ctx = false
+        this.loaded = false
+        this._resetUntil()
+        this.anim = false
+        this.columns = this.options.steps / this.options.rows
+        this.currentFps = 15
+        this.flipped = false
     }
 
-    // Apply multiple CSS rules on multiple elements
-    function __css (elements, rules) {
-        if (elements !== null && elements.constructor === Array) {
-            for (let i = 0; i < elements.length; i++) {
-                __setCss(elements[i], rules)
-            }
-        } else {
-            __setCss(elements, rules)
-        }
-    }
+    _throttle (callback, delay) {
+    // throttle function
+        let last
+        let timer
 
+        return () => {
+            let context = this
+            let now = +new Date()
+            let args = arguments
 
-    /**
-    * Private methods
-    */
-
-    // Sprite calculations
-    function _calculations () {
-        // how many columns ?
-        sprite.columns = Math.ceil(settings.steps / settings.rows)
-
-        // what's background sizes
-        backgroundSize = 100 * sprite.columns
-
-        // fixed width calculation
-        sprite.width = settings.width / sprite.columns
-        sprite.width = (Math.round((sprite.width * 1000) / 10) / 100).toFixed(2)
-
-        // fixed height calculation
-        sprite.height = settings.height / settings.rows
-        sprite.height = (Math.round((sprite.height * 1000) / 10) / 100).toFixed(2)
-
-        // sprite ratio used for fluid display
-        sprite.ratio = sprite.width / sprite.height
-    }
-
-    // Generate the main DOM
-    function _generateMain () {
-        if (mainNode === null) {
-            mainNode = document.createElement('div')
-            fallbackNode = document.createElement('div')
-            mainNode.appendChild(fallbackNode)
-
-            if (typeof settings.container === 'object') {
-                settings.container.appendChild(mainNode)
+            if (last && now < last + delay) {
+                clearTimeout(timer)
+                timer = setTimeout(() => {
+                    last = now
+                    callback.apply(context, args)
+                }, delay)
             } else {
-                document.querySelector(settings.container).appendChild(mainNode)
+                last = now
+                callback.apply(context, args)
             }
         }
     }
 
-    // Attach events listeners
-    function _bindEvents () {
-        window.addEventListener('resize', _viewportResize)
+    _bindEvents () {
+    // create events listeners
+        this.resize = this._throttle((event) => {
+            this._resize()
+        }, 250)
+
+        window.addEventListener('resize', this.resize, false)
     }
 
-    // Detach events listeners
-    function _unbindEvents () {
-        window.removeEventListener('resize', _viewportResize)
+    _unbindEvents () {
+    // remove events listeners
+        window.removeEventListener('resize', this.resize, false)
     }
 
-    // Viewport resizing
-    function _viewportResize () {
-        return refresh()
+    _resize () {
+    // viewport resize triggered
+        this._loadPicture()
+        this.emitter.emit('resize')
     }
-
-    // Generate accessibility tags
-    function _accessibility () {
-        if (settings.ariaLabel.length > 2) {
-            __setAttributes(mainNode, {
-                'role': 'img',
-                'aria-label': settings.ariaLabel,
-                'tabindex': '0',
-                'aria-hidden': 'false'
-            })
-        } else {
-            __setAttributes(mainNode, {
-                'role': 'img',
-                'aria-hidden': 'false'
-            })
-        }
-    }
-
-    // Generate the proxy dom
-    function _generateProxy () {
-        if (proxyNode === null) {
-            proxyNode = document.createElement('div')
-            mainNode.appendChild(proxyNode)
-        }
-    }
-
-    // Generate the JPG/PNG mask using SVG
-    function _generateSVG () {
-        if (_canUseSVG() && settings.mask !== false && svgNode === null) {
-            svgNode = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-            svgNode.innerHTML =
-                `<defs>
-                    <mask id="spritzTopMask">
-                        <image width="${settings.width}" height="${settings.height}" xlink:href="${settings.mask}"></image>
-                    </mask>
-                </defs>
-                <image mask="url(#spritzTopMask)" id="spritzTop" width="${settings.width}" height="${settings.height}" xlink:href="${settings.src}"></image> `
-            __setAttributes(svgNode, {
-                'preserveAspectRatio': 'xMinYMin',
-                'width': '100%',
-                'height': '100%',
-                'version': '1.1',
-                'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-                'viewBox': '0 0 ' + sprite.width + ' ' + sprite.height + ''
-            })
-            mainNode.appendChild(svgNode)
-        }
-    }
-
-    // Return true if SVG Mask can be used by the browser
-    function _canUseSVG () {
-        // SVG Masking disabled for Safari
-        // (http://stackoverflow.com/questions/31384271/safari-unreasonably-slow-rendering-svg-files)
-        if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent) === true) {
-            return false
-        }
-
-        // Return true if SVG support enabled (work for IE8+)
-        return !!(document.createElementNS && document.createElementNS('http://www.w3.org/2000/svg', 'svg').createSVGRect)
-    }
-
-    // Set default step
-    function _defaultStep () {
-        changeStep(settings.initial, true)
-    }
-
-    // Generate the CSS
-    function _generateCSS () {
-        // Generic rules
-        __css(mainNode, {
-            'overflow': 'hidden',
-            'outline': '0'
-        })
-        __css(fallbackNode, {
-            'position': 'absolute',
-            'top': '0',
-            'left': '0',
-            'width': '100%',
-            'height': '100%',
-            'background-size': '' + backgroundSize + '%',
-            'background-position': '0 0',
-            'background-repeat': 'no-repeat'
-        })
-        __css(svgNode, {
-            'position': 'absolute',
-            'top': '0',
-            'left': '0',
-            'opacity': '1'
-        })
-        __css(proxyNode, {
-            'position': 'absolute',
-            'left': '-9999px',
-            'top': '0',
-            'width': '100%',
-            'height': '100%',
-            'opacity': '0',
-            'background-repeat': 'no-repeat',
-            'background-size': '100%',
-            'background-position': '0 0'
-        })
-
-        // Conditional rules
-        if (settings.displayMode === 'fluid') {
-            __css(mainNode, {
-                'position': 'relative',
-                'width': '100%',
-                'height': '' + (mainNode.parentNode.clientWidth / sprite.ratio) + 'px'
-            })
-        } else {
-            __css(mainNode, {
-                'position': 'absolute',
-                'left': '50%',
-                'top': '50%',
-                'transform': 'translate(-50%, -50%)',
-                'width': '' + sprite.width + 'px',
-                'height': '' + sprite.height + 'px'
-            })
-        }
-        if (imageNode !== null) {
-            __css(fallbackNode, {
-                'background-image': 'url("' + imageNode.src + '")'
-            })
-        }
-        if (svgNode !== null) {
-            __css(fallbackNode, {
-                'opacity': '0'
-            })
-        }
-    }
-
-    // Show proxy CSS rules
-    function _showProxy () {
-        __css([svgNode, fallbackNode], {
-            'transition': 'opacity 0.6s linear 0.7s',
-            'opacity': '0'
-        })
-
-        __css(proxyNode, {
-            'transition': 'opacity 0.6s linear 0.1s',
-            'opacity': '1',
-            'left': '0'
-        })
-    }
-
-    // Hide proxy CSS rules
-    function _hideProxy () {
-        if (svgNode !== null) {
-            __css(svgNode, {
-                'transition': 'none',
-                'opacity': '1'
-            })
-        } else {
-            __css(fallbackNode, {
-                'transition': 'none',
-                'opacity': '1'
-            })
-        }
-
-        __css(proxyNode, {
-            'transition': 'none',
-            'opacity': '0',
-            'left': '-9999px'
-        })
-    }
-
-    // Load and cache the proxy image
-    function _loadProxyImage (source) {
-        return new Promise(function (resolve, reject) {
-            if (typeof proxyImagesList[source] === 'undefined') {
-                let proxyImage = new Image()
-                proxyImage.onload = function () {
-                    proxyImagesList[source] = proxyImage
-                    resolve(proxyImagesList[source])
-                }
-                proxyImage.src = source
-            } else {
-                resolve(proxyImagesList[source])
-            }
-        })
-    }
-
-    // Return the following step
-    function _nextStep () {
-        return currentStep < settings.steps ? currentStep + 1 : 1
-    }
-
-    // Return the previous step
-    function _prevStep () {
-        return currentStep > 1 ? currentStep - 1 : settings.steps
-    }
-
-    // Replace the current step by it's HD replacement, only if it exists
-    function _proxy (step) {
-        // Check if the proxy frame has been defined by the user
-        if (typeof settings.proxy[step] === 'undefined') { return }
-
-        // Disable for mobile devices
-        let viewportWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth
-        if (settings.breakpoint !== false && viewportWidth < settings.breakpoint) { return }
-
-        // If the proxy dom element exists, we can load the proxy image
-        if (proxyNode !== null) {
-            let proxySrc = settings.proxy[step]
-            _loadProxyImage(proxySrc).then(function (proxyImage) {
-                __css(proxyNode, {'background-image': 'url("' + proxyImage.getAttribute('src') + '")'})
-                _showProxy()
-
-                // IE Fix for rendering
-                setTimeout(function () {
-                    proxyNode.style.left = '0'
-                }, 100)
-            })
-        }
-    }
-
-    // Frame animation
-    function _requestAnimation (interval, step = 'next', lastTime = 0) {
-        if (frameRequest !== null) {
-            window.cancelAnimationFrame(frameRequest)
-            frameRequest = null
-        }
-
-        frameRequest = window.requestAnimationFrame(function (timestamp) {
-            _loopAnimation(interval, step, timestamp, lastTime)
-        })
-    }
-
-    // Loop animation
-    function _loopAnimation (interval, step, timestamp, lastTime) {
-        let update = timestamp - lastTime >= interval
-
-        if (update) {
-            changeStep(step)
-            lastTime = timestamp
-        }
-
-        if (isAnimationPlaying) {
-            _requestAnimation(interval, step, lastTime)
-        }
-    }
-
 
     /**
-    * Public methods
-    */
+        --- API ---
+    **/
 
-    // Initiate the instance
-    function init (initial = null) {
-        if (initial !== null) settings.initial = initial
-        __runSeries(__init).then(function () {
-            instance.emit('init')
-        })
-        return this
-    }
+    init (step = 1) {
+    // init the sprite
+        if (!this.initiated) {
+            this.initialStep = step
+            this.currentStep = step
 
-    // Create the sprite structure
-    function build () {
-        elapsedSteps = 0
-        __runSeries(__build).then(function () {
-            instance.emit('build')
-        })
-        return this
-    }
+            this._globalVars()
+            this._bindEvents()
+            this._createCanvas()
+            this._loadPicture()
 
-    // Refresh the view
-    function refresh () {
-        settings.initial = currentStep
-        __runSeries(__refresh).then(function () {
-            instance.emit('refresh')
-        })
-        return this
-    }
-
-    // Flip the sprite / horizontal mirror
-    function flip (doFlip = settings.flip) {
-        if (doFlip === true) {
-            __css([fallbackNode, proxyNode, svgNode], {
-                'transform': 'scaleX(-1)',
-                'filter': 'fliph()',
-                '-ms-filter': 'FlipH'
-            })
-        } else {
-            __css([fallbackNode, proxyNode, svgNode], {
-                'transform': 'none',
-                'filter': 'none',
-                '-ms-filter': 'none'
-            })
-        }
-        return this
-    }
-
-    // Destroy completely the sprite and restore initial state
-    function destroy () {
-        pause(true)
-        _unbindEvents()
-
-        if (mainNode !== null) {
-            mainNode.parentNode.removeChild(mainNode)
+            this.initiated = true
+            this.emitter.emit('ready')
         }
 
-        instance.emit('destroy')
-        instance.off('init')
-        instance.off('load')
-        instance.off('build')
-        instance.off('destroy')
-        instance.off('play')
-        instance.off('pause')
-        instance.off('stop')
-        instance.off('change')
-
-        imageNode = fallbackNode = mainNode = svgNode = proxyNode = proxyTimeout = null
-        proxyImagesList = []
-
         return this
     }
 
-    // Load the sprite image
-    function load () {
-        if (imageNode === null) {
-            imageNode = new Image()
-            imageNode.onload = function () { instance.emit('load') }
-            imageNode.src = settings.src
-        }
-        return this
-    }
+    destroy () {
+    // destroy sprite instance
+        this.waitter.handle(() => {
+            if (this.initiated) {
+                // stop stuff
+                this.stop()
+                this._unbindEvents()
 
-    // Return true if SVG Masking is supported
-    function isMaskingSupported () {
-        return _canUseSVG
-    }
+                // reset & remove canvas
+                this.canvas.parentNode.removeChild(this.canvas)
+                this.container.parentNode.removeChild(this.container)
+                this.canvas = false
+                this.ctx = false
 
-    // Return the current frame/step
-    function getCurrentStep () {
-        return currentStep
-    }
+                // turn initiated to false
+                this.initiated = false
 
-    // Change the current frame/step (no animation)
-    function changeStep (targetStep = 1, silent = false) {
-        if (mainNode != null && imageNode != null) {
-            // Hide the proxy
-            _hideProxy()
+                // emitt destroy
+                this.emitter.emit('destroy')
 
-            // If next or previous step
-            let targetStepDecoded = (targetStep === 'next') ? _nextStep() : (targetStep === 'previous') ? _prevStep() : targetStep
-
-            // Step & rows values, starting from 0
-            let stepZero = targetStepDecoded - 1
-            let rowsZero = settings.rows - 1
-            let columnsZero = sprite.columns - 1
-
-            // Calculate the new position
-            let positionX = sprite.columns > 1 ? (100 / columnsZero) * (stepZero % sprite.columns) : 0
-            let positionY = settings.rows > 1 ? (100 / rowsZero) * Math.floor(stepZero / sprite.columns) : 0
-
-            // Set the new sprite position
-            if (svgNode !== null) {
-                positionX = (positionX * columnsZero / 100) * sprite.width
-                positionY = (positionY * rowsZero / 100) * sprite.height
-
-                svgNode.setAttribute(
-                    'viewBox', '' + positionX + ' ' + positionY + ' ' + sprite.width + ' ' + sprite.height + ''
-                )
-            } else {
-                fallbackNode.style.backgroundPosition = '' + positionX + '% ' + positionY + '%'
+                // turn off emitters
+                this.emitter.off('ready')
+                this.emitter.off('destroy')
+                this.emitter.off('resize')
+                this.emitter.off('play')
+                this.emitter.off('load')
+                this.emitter.off('change')
+                this.emitter.off('wait')
+                this.emitter.off('flip')
+                this.emitter.off('pause')
+                this.emitter.off('stop')
             }
+        })
 
-            // Save current step
-            currentStep = targetStepDecoded
+        return this
+    }
 
-            // Fire proxy replacement after a certain time on a frame
-            if (settings.proxy !== false) {
-                clearTimeout(proxyTimeout)
-                if (frameRequest === null) {
-                    proxyTimeout = setTimeout(function () {
-                        _proxy(targetStepDecoded)
-                    }, 500)
+    play () {
+    // play animation forward
+        this.waitter.handle(() => {
+            this.animDirection = 'forward'
+            this._startAnimation()
+
+            console.log('playing')
+
+            this.emitter.emit('play')
+        })
+
+        return this
+    }
+
+    playback () {
+    // play animation backward
+        this.waitter.handle(() => {
+            this.animDirection = 'backward'
+            this._startAnimation()
+
+            console.log('playing backwards')
+
+            this.emitter.emit('play')
+        })
+
+        return this
+    }
+
+    pause (silent = false) {
+    // pause animation
+        this.waitter.handle(() => {
+            this._pauseAnimation()
+
+            if (!silent) {
+                console.log('paused')
+                this.emitter.emit('pause')
+            }
+        })
+
+        return this
+    }
+
+    stop () {
+    // stop animation (= pause + reset)
+        this.waitter.handle(() => {
+            this.pause(true)
+            this.step(this.initialStep)
+
+            console.log('stopped')
+
+            this.emitter.emit('stop')
+        })
+
+        return this
+    }
+
+    wait (milliseconds = 0) {
+    // chainable timeout
+        this.waitter.handle(() => {
+            this.emitter.emit('wait')
+            console.log('waiting for ' + milliseconds + 'ms')
+        }, milliseconds)
+
+        return this
+    }
+
+    step (step = 1) {
+    // change the current frame/step
+        this.waitter.handle(() => {
+            this.currentStep = step
+            this._draw()
+
+            this.emitter.emit('change')
+        })
+
+        return this
+    }
+
+    fps (speed) {
+    // change animation speed
+        this.waitter.handle(() => {
+            this.currentFps = speed
+        })
+
+        return this
+    }
+
+    until (step, loop = 1) {
+    // next animation will stop at this
+        this.waitter.handle(() => {
+            this.stopAtStep = step
+            this.stopAtLoop = loop
+        })
+
+        return this
+    }
+
+    next () {
+    // go to the next frame
+        this.waitter.handle(() => {
+            this.animDirection = 'forward'
+            this.currentStep = this._targetStep()
+            this._draw()
+
+            this.emitter.emit('change')
+        })
+
+        return this
+    }
+
+    prev () {
+    // go to the previous frame
+        this.waitter.handle(() => {
+            this.animDirection = 'backward'
+            this.currentStep = this._targetStep()
+            this._draw()
+
+            this.emitter.emit('change')
+        })
+
+        return this
+    }
+
+    get (data, callback = false) {
+    // return data, then call the callback function with result
+        this.waitter.handle(() => {
+            switch (data) {
+                case 'step':
+                    return callback !== false ? callback.call(this, this.currentStep) : this.currentStep
+                case 'picture':
+                    return callback !== false ? callback.call(this, this.pic) : this.pic
+                default:
+                    return false
+            }
+        })
+
+        return this
+    }
+
+    flip () {
+    // flip the sprite horizontally
+        this.waitter.handle(() => {
+            let css = this.flipped
+                ? 'width:100%;height:100%;'
+                : 'width:100%;height:100%;-webkit-transform:scale(-1, 1);-ms-transform:scale(-1, 1);transform:scale(-1, 1);-webkit-filter:FlipH;filter:FlipH;'
+
+            this.container.setAttribute('style', css)
+            this.flipped = !this.flipped
+            this.emitter.emit('flip')
+        })
+
+        return this
+    }
+
+    on (...args) { return this.emitter.on(...args) }
+    off (...args) { return this.emitter.off(...args) }
+    once (...args) { return this.emitter.once(...args) }
+
+    /**
+        --- ANIMATE ---
+    **/
+
+    _resetUntil () {
+    // reset the "until()" api command
+        this.stopAtLoop = false
+        this.stopAtStep = false
+    }
+
+    _targetStep () {
+    // return the following step to be displayed
+        if (this.animDirection === 'forward') {
+            return this.currentStep < this.options.steps
+                ? this.currentStep + 1
+                : 1
+        } else {
+            return this.currentStep > 1
+                ? this.currentStep - 1
+                : this.options.steps
+        }
+    }
+
+    _animate (timestamp) {
+    // frame animation
+        if (this.animTime === undefined) {
+            this.animTime = timestamp
+        }
+
+        let seg = Math.floor((timestamp - this.animTime) / (1000 / this.currentFps))
+        let pauseAnim = false
+
+        if (seg > this.animFrame) {
+            this.animFrame = seg
+            this.currentStep = this._targetStep()
+
+            let draw = true
+            if (this.currentStep === this.stopAtStep) {
+                this.currentLoop ++
+                if (this.currentLoop === this.stopAtLoop) {
+                    draw = false
                 }
             }
 
-            // Emit changed
-            if (silent === false) {
-                elapsedSteps++
-                instance.emit('change', targetStepDecoded, elapsedSteps)
+            if (draw) {
+                this._draw()
+            } else {
+                this.pause()
+                pauseAnim = true
             }
         }
-        return this
-    }
 
-    // Set a progress value: 0 = first step / 1 = last step
-    function changeProgress (progressValue = 0) {
-        let stepEquiv = Math.round(progressValue * 100 * settings.steps / 100)
-        return changeStep(stepEquiv === 0 ? stepEquiv + 1 : stepEquiv)
-    }
-
-    // Play loop animation
-    function play (fps = 12, direction = 'forward') {
-        elapsedSteps = 0
-        let interval = 1000 / fps
-        if (fps === 0) pause()
-        isAnimationPlaying = true
-        let _direction = (direction === 'forward') ? 'next' : 'previous'
-        _requestAnimation(interval, _direction)
-        instance.emit('play')
-        return this
-    }
-
-    // Pause loop animation
-    function pause (silent = false) {
-        if (frameRequest !== null) {
-            elapsedSteps = 0
-            isAnimationPlaying = false
-            window.cancelAnimationFrame(frameRequest)
-            frameRequest = null
-            if (silent === false) instance.emit('pause')
+        if (!pauseAnim) {
+            this.anim = window.requestAnimationFrame((timestamp) => this._animate(timestamp))
         }
-        return this
     }
 
-    // Stop and reset the loop animation
-    function stop (silent = false) {
-        this.pause(true)
-        if (silent === false) instance.emit('stop')
-        this.changeStep(settings.initial, false)
-        return this
+    _startAnimation () {
+    // start animation
+        if (!this.anim) {
+            this.animTime = undefined
+            this.animFrame = -1
+            this.currentLoop = 0
+            this.anim = window.requestAnimationFrame((timestamp) => this._animate(timestamp))
+        }
     }
+
+    _pauseAnimation () {
+    // pause animation
+        if (this.anim) {
+            this._resetUntil()
+            window.cancelAnimationFrame(this.anim)
+            this.anim = false
+        }
+    }
+
+    /**
+        --- DETECT & CALCULATE ---
+    **/
+
+    _selectPicture () {
+    // select picture src from list
+        for (let i = 0; i < this.options.picture.length; i++) {
+            let pic = this.options.picture[i]
+            if (this._supportsFormat(pic.srcset) && this._matchesMedia(pic.media)) {
+                this.pic = pic
+                return pic.srcset
+            }
+        }
+        return false
+    }
+
+    _supportsFormat (filename) {
+    // return true if filename is a supported format
+        let ext = this._getExtension(filename)
+        return (ext === 'webp' && this.supportsWebP) || ext !== 'webp'
+    }
+
+    _supportsWebP () {
+    // return true if webP is supported
+        let canvas = document.createElement('canvas')
+        canvas.width = canvas.height = 1
+        return canvas.toDataURL && canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0
+    }
+
+    _getExtension (filename) {
+    // return the filename extension
+        return (/[.]/.exec(filename)) ? /[^.]+$/.exec(filename)[0] : undefined
+    }
+
+    _matchesMedia (query = undefined) {
+    // return true if matches the media query
+        let mq = window.matchMedia(query)
+        return query !== undefined ? mq.matches : true
+    }
+
+    _setDimensions () {
+    // calculate sprite dimensions
+        this.stepWidth = this.pic.width / this.columns
+        this.stepHeight = this.pic.height / this.options.rows
+        this.stepRatio = this.stepWidth / this.stepHeight
+
+        this.parentWidth = this.selector.clientWidth
+        this.parentHeight = this.selector.clientHeight
+        this.parentRatio = this.parentWidth / this.parentHeight
+
+        if (this.stepRatio >= this.parentRatio) {
+            this.canvasWidth = this.parentWidth
+            this.canvasHeight = (this.stepHeight * this.canvasWidth) / this.stepWidth
+        } else {
+            this.canvasHeight = this.parentHeight
+            this.canvasWidth = (this.stepWidth * this.canvasHeight) / this.stepHeight
+        }
+
+        this.canvas.width = this.canvasWidth
+        this.canvas.height = this.canvasHeight
+    }
+
+    /**
+        --- CREATE & DRAW ---
+    **/
+
+    _loadPicture () {
+    // load source picture
+        this.picture = new Image()
+        this.picture.onload = () => {
+            if (!this.loaded) {
+                this.emitter.emit('load')
+                this.loaded = true
+            }
+            this._draw()
+        }
+        this.picture.src = this._selectPicture()
+        console.log(this.picture.src)
+    }
+
+    _draw () {
+    // draw sprite
+        this._setDimensions()
+        this._drawPicture()
+    }
+
+    _drawPicture () {
+    // draw picture into canvas
+        let targetColumn = (this.currentStep - 1) % this.columns
+        let targetRow = Math.floor((this.currentStep - 1) / this.columns)
+
+        let posX = targetColumn * this.stepWidth
+        let posY = targetRow * this.stepHeight
+
+        this.ctx.drawImage(
+            this.picture,
+            posX, posY,
+            this.stepWidth,
+            this.stepHeight,
+            0, 0,
+            this.canvasWidth,
+            this.canvasHeight
+        )
+    }
+
+    _createCanvas () {
+    // create html5 canvas
+        this.canvas = document.createElement('canvas')
+        this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;z-index:1;-webkit-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);-ms-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);')
+
+        this.container = document.createElement('div')
+        this.container.setAttribute('style', 'width:100%;height:100%;')
+        this.container.appendChild(this.canvas)
+
+        this.selector.appendChild(this.container)
+        this.ctx = this.canvas.getContext('2d')
+    }
+
 }
