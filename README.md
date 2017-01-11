@@ -8,9 +8,9 @@
 >
 > --
 >
-> ***Why rewritting everything from scratch?***
+> ***Why rewriting everything from scratch?***
 >
-> *In order to propose better perfomances and support (by using a Canvas drawing approach instead of CSS only), images responsivity (by using a syntax close to the new HTML5 "picture" element), and more flexibility for designing animations (through a chainable API with timers).*
+> *In order to propose better performances and support (by using a Canvas drawing approach instead of CSS only), images responsivity (by using a syntax close to the new HTML5 "picture" element), and more flexibility for designing animations (through a chainable API with timers).*
 
 
 ## Features
@@ -86,7 +86,7 @@ Option | Type | Default | Description
 
 ### Picture
 
-The `picture` option syntax is close to the new HTML5 "picture" element. The library will choose the most suitable source according to the current layout of the page and the device it will be displayed on. Sens of reading is following the array order (first to last element).
+The `picture` option syntax is close to the new HTML5 "picture" element. The library will choose the most suitable source according to the current layout of the page and the device it will be displayed on. Sense of reading is following the array order (first to last element).
 
 **Parameters:**
 
@@ -139,7 +139,7 @@ Spritz exposes the following chainable API methods.
 
 ### .init()
 
-Build and load the sprite, within its selector. Inital step can be passed as parameter.
+Build and load the sprite, within its selector. Initial step can be passed as parameter.
 
 ```javascript
 sprite.init() // Basic usage
@@ -148,7 +148,7 @@ sprite.init(2) // Initial step is 2 (default = 1)
 
 ### .destroy()
 
-Completely destroy the sprite element and behaviors. Restore the intial state.
+Completely destroy the sprite element and behaviors. Restore the initial state.
 
 ```javascript
 sprite.destroy()
@@ -164,10 +164,11 @@ sprite.fps(10) // Change speed to 10fps
 
 ### .play()
 
-Play animation forward (using the current fps value).
+Play animation forward (using the current fps value). A `backward` option can be passed as parameter.
 
 ```javascript
 sprite.play()
+sprite.play('backward') // Alternative way to play an animation backward
 ```
 
 ### .playback()
