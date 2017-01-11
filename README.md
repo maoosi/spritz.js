@@ -5,11 +5,11 @@
 **Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).**
 
 > **Spritz.js 2.0**: For this new version, the library has been completely rewritten from scratch. This means that version 2.x is not compatible with the version 1.x.
-> 
+>
 > --
-> 
+>
 > ***Why rewritting everything from scratch?***
-> 
+>
 > *In order to propose better perfomances and support (by using a Canvas drawing approach instead of CSS only), images responsivity (by using a syntax close to the new HTML5 "picture" element), and more flexibility for designing animations (through a chainable API with timers).*
 
 
@@ -43,10 +43,10 @@
 npm i spritz.js --save
 ```
 
-### jsDelivr CDN
+### Unpkg CDN
 
 ```html
-<script src="https://cdn.jsdelivr.net/spritz.js/2.0.0/spritz.js"></script>
+<script src="https://unpkg.com/spritz.js/dist/spritz.js"></script>
 ```
 
 ## Usage
@@ -226,7 +226,7 @@ sprite.until(7) // Animation will automatically stop at step/frame 7
 sprite.until(3, 2) // Animation will automatically stop at step/frame 3, on the second loop
 
 /* Usage example */
-sprite	
+sprite
 	.until(7) // Stop following animation at step/frame 7
 	.play() // Play animation (will automatically stop at step/frame 7)
 ```
@@ -295,7 +295,7 @@ sprite.on('change', (from, to) => { /* Your code here */ })
 Fully supported by Evergreen Browsers (Edge, Opera, Safari, Firefox & Chrome) and IE 10+ browsers.
 
 > For **old browsers support like IE8 or IE9**, you'll need to manually include the following Polyfill library on your website:
-> 
+>
 ```html
 <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
 ```
