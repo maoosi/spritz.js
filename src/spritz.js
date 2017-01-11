@@ -145,7 +145,7 @@ export default class Spritz {
     play (direction = false) {
     // play animation forward
         this.waitter.handle(() => {
-            this.animDirection = (direction == 'backward') ? 'backward' : 'forward'
+            this.animDirection = (direction === 'backward') ? 'backward' : 'forward'
             this._startAnimation()
 
             this.emitter.emit('play', this.animDirection)

@@ -465,7 +465,7 @@ var Spritz = function () {
 
             // play animation forward
             this.waitter.handle(function () {
-                _this4.animDirection = direction == 'backward' ? 'backward' : 'forward';
+                _this4.animDirection = direction === 'backward' ? 'backward' : 'forward';
                 _this4._startAnimation();
 
                 _this4.emitter.emit('play', _this4.animDirection);
