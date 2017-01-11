@@ -131,6 +131,8 @@ Spritz exposes the following chainable API methods.
 * [stop](#stop)
 * [wait](#wait)
 * [step](#step)
+* [next](#next)
+* [prev](#prev)
 * [until](#until)
 * [flip](#flip)
 * [get](#get)
@@ -214,6 +216,22 @@ Change the current step (or frame) of the sprite. Target step to be passed as pa
 sprite.step(5) // Change current step/frame to 5
 ```
 
+### .next()
+
+Go to the next step (or frame).
+
+```javascript
+sprite.next()
+```
+
+### .prev()
+
+Go to the previous step (or frame).
+
+```javascript
+sprite.prev()
+```
+
 ### .until()
 
 The next animation will automatically pause at the value specified. Two parameters can be used:
@@ -288,6 +306,9 @@ sprite.on('wait', (delay) => { /* Your code here */ })
 
 // Step changed manually ('from' and 'to' passed as parameters)
 sprite.on('change', (from, to) => { /* Your code here */ })
+
+// Viewport has been resized (new current 'picture' passed as parameter)
+sprite.on('resize', (picture) => { /* Your code here */ })
 ```
 
 ## Browser Support
