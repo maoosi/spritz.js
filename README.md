@@ -1,16 +1,8 @@
 # Spritz.js
 
-🚀 A small, modern, responsive, **sprites animation library**.
+> 🚀 A small, modern, responsive, **sprites animation library**.
 
-**Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).**
-
-> **Spritz.js 2.0**: For this new version, the library has been completely rewritten from scratch. This means that version 2.x is not compatible with the version 1.x.
->
-> --
->
-> ***Why rewriting everything from scratch?***
->
-> *In order to propose better performances and support (by using a Canvas drawing approach instead of CSS only), images responsivity (by using a syntax close to the new HTML5 "picture" element), and more flexibility for designing animations (through a chainable API with timers).*
+✨ **Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).**
 
 
 ## Features
@@ -58,7 +50,7 @@ import Spritz from 'spritz.js'
 // instantiate with options
 const sprite = new Spritz('#selector', { /* options here */ })
 
-// build and display the sprite
+// 🎉 build and display the sprite
 sprite.init()
 ```
 
