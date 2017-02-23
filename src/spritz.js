@@ -464,9 +464,11 @@ export default class Spritz {
         let posX = targetColumn * this.stepWidth
         let posY = targetRow * this.stepHeight
 
+        this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
+
         this.ctx.drawImage(
             this.picture,
-            posX, posY,
+            Math.round(posX) + 0.5, Math.round(posY) + 0.5,
             this.stepWidth,
             this.stepHeight,
             0, 0,
