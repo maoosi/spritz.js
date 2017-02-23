@@ -720,7 +720,7 @@ var Spritz = function () {
                     }
                 }
 
-                if (draw && !this.requireStop) {
+                if (draw) {
                     this._draw();
                     this.emitter.emit('change', fromStep, this.currentStep);
                 } else {
@@ -729,7 +729,7 @@ var Spritz = function () {
                 }
             }
 
-            if (!pauseAnim) {
+            if (!pauseAnim && !this.requireStop) {
                 this.anim = window.requestAnimationFrame(function (timestamp) {
                     return _this16._animate(timestamp);
                 });

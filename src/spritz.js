@@ -340,7 +340,7 @@ export default class Spritz {
                 }
             }
 
-            if (draw && !this.requireStop) {
+            if (draw) {
                 this._draw()
                 this.emitter.emit('change', fromStep, this.currentStep)
             } else {
@@ -349,7 +349,7 @@ export default class Spritz {
             }
         }
 
-        if (!pauseAnim) {
+        if (!pauseAnim && !this.requireStop) {
             this.anim = window.requestAnimationFrame((timestamp) => this._animate(timestamp))
         }
     }
