@@ -51,19 +51,18 @@
             console.log(pic)
         })
 
-        sprite.on('change', (step) => {
-            console.log(step)
+        sprite.on('change', (from, to) => {
+            if (to == 9) {
+                sprite.pause().wait(2000).play()
+            }
         })
+
+        sprite.play()
 
         sprite.on('load', () => {
             let logger = false
 
-            sprite
-                .play()
-                .wait(1000)
-                .pause()
-                .wait(1000)
-                .next()
+            //sprite.play()
                 // .wait(1000)
                 // .next()
                 // .get('step', (result) => { console.log(result) })
