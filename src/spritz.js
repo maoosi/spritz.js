@@ -329,6 +329,7 @@ export default class Spritz {
 
         if (seg > this.animFrame) {
             this.animFrame = seg
+            let fromStep = this.currentStep
             this.currentStep = this._targetStep()
 
             let draw = true
@@ -341,6 +342,7 @@ export default class Spritz {
 
             if (draw) {
                 this._draw()
+                this.emitter.emit('change', fromStep, this.currentStep)
             } else {
                 this.pause()
                 pauseAnim = true

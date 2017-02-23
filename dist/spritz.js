@@ -715,6 +715,7 @@ var Spritz = function () {
 
             if (seg > this.animFrame) {
                 this.animFrame = seg;
+                var fromStep = this.currentStep;
                 this.currentStep = this._targetStep();
 
                 var draw = true;
@@ -727,6 +728,7 @@ var Spritz = function () {
 
                 if (draw) {
                     this._draw();
+                    this.emitter.emit('change', fromStep, this.currentStep);
                 } else {
                     this.pause();
                     pauseAnim = true;
