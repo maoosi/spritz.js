@@ -1,5 +1,5 @@
 /*!
-* spritz.js 2.0.0 - A small, modern, responsive, sprites animation library.
+* spritz.js 2.0.1 - A small, modern, responsive, sprites animation library.
 * Copyright (c) 2017 maoosi <hello@sylvainsimao.fr> - https://github.com/maoosi/spritz.js
 * License: MIT
 */
@@ -874,7 +874,9 @@ var Spritz = function () {
             var posX = targetColumn * this.stepWidth;
             var posY = targetRow * this.stepHeight;
 
-            this.ctx.drawImage(this.picture, posX, posY, this.stepWidth, this.stepHeight, 0, 0, this.canvasWidth, this.canvasHeight);
+            this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+
+            this.ctx.drawImage(this.picture, Math.round(posX) + 0.5, Math.round(posY) + 0.5, this.stepWidth, this.stepHeight, 0, 0, this.canvasWidth, this.canvasHeight);
         }
     }, {
         key: '_createCanvas',
