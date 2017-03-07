@@ -12,7 +12,8 @@ export default class Spritz {
         this.options = {
             picture: options.picture || [],
             steps: options.steps || 1,
-            rows: options.rows || 1
+            rows: options.rows || 1,
+            objectFit: options.objectFit || 'contain'
         }
 
         this.selector = typeof selector === 'string'
@@ -35,7 +36,7 @@ export default class Spritz {
         this.loaded = false
         this._resetUntil()
         this.anim = false
-        this.columns = this.options.steps / this.options.rows
+        this.columns = Math.ceil(this.options.steps / this.options.rows)
         this.currentFps = 15
         this.flipped = false
     }
@@ -293,7 +294,6 @@ export default class Spritz {
 
     on (...args) { return this.emitter.on(...args) }
     off (...args) { return this.emitter.off(...args) }
-    once (...args) { return this.emitter.once(...args) }
 
     /**
         --- ANIMATE ---
@@ -425,12 +425,22 @@ export default class Spritz {
         this.parentHeight = this.selector.clientHeight
         this.parentRatio = this.parentWidth / this.parentHeight
 
-        if (this.stepRatio >= this.parentRatio) {
-            this.canvasWidth = this.parentWidth
-            this.canvasHeight = (this.stepHeight * this.canvasWidth) / this.stepWidth
+        if (this.options.objectFit === 'contain') {
+            if (this.stepRatio >= this.parentRatio) {
+                this.canvasWidth = this.parentWidth
+                this.canvasHeight = (this.stepHeight * this.canvasWidth) / this.stepWidth
+            } else {
+                this.canvasHeight = this.parentHeight
+                this.canvasWidth = (this.stepWidth * this.canvasHeight) / this.stepHeight
+            }
         } else {
-            this.canvasHeight = this.parentHeight
-            this.canvasWidth = (this.stepWidth * this.canvasHeight) / this.stepHeight
+            if (this.stepRatio >= this.parentRatio) {
+                this.canvasHeight = this.parentHeight
+                this.canvasWidth = (this.stepWidth * this.canvasHeight) / this.stepHeight
+            } else {
+                this.canvasWidth = this.parentWidth
+                this.canvasHeight = (this.stepHeight * this.canvasWidth) / this.stepWidth
+            }
         }
 
         this.canvas.width = this.canvasWidth
@@ -462,7 +472,7 @@ export default class Spritz {
 
     _drawPicture () {
     // draw picture into canvas
-        let targetColumn = (this.currentStep - 1) % this.columns
+        let targetColumn = Math.floor((this.currentStep - 1) % this.columns)
         let targetRow = Math.floor((this.currentStep - 1) / this.columns)
 
         let posX = targetColumn * this.stepWidth
@@ -472,7 +482,7 @@ export default class Spritz {
 
         this.ctx.drawImage(
             this.picture,
-            Math.round(posX) + 0.5, Math.round(posY) + 0.5,
+            Math.round(posX), Math.round(posY),
             this.stepWidth,
             this.stepHeight,
             0, 0,
@@ -484,7 +494,7 @@ export default class Spritz {
     _createCanvas () {
     // create html5 canvas
         this.canvas = document.createElement('canvas')
-        this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;z-index:1;-webkit-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);-ms-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);')
+        this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;-webkit-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);-ms-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);')
 
         this.container = document.createElement('div')
         this.container.setAttribute('style', 'width:100%;height:100%;')

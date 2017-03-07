@@ -1,5 +1,5 @@
 /*!
-* spritz.js 2.0.1 - A small, modern, responsive, sprites animation library.
+* spritz.js 2.0.3 - A small, modern, responsive, sprites animation library.
 * Copyright (c) 2017 maoosi <hello@sylvainsimao.fr> - https://github.com/maoosi/spritz.js
 * License: MIT
 */
@@ -317,7 +317,8 @@ var Spritz = function () {
         this.options = {
             picture: options.picture || [],
             steps: options.steps || 1,
-            rows: options.rows || 1
+            rows: options.rows || 1,
+            objectFit: options.objectFit || 'contain'
         };
 
         this.selector = typeof selector === 'string' ? document.querySelector(selector) : selector;
@@ -340,7 +341,7 @@ var Spritz = function () {
             this.loaded = false;
             this._resetUntil();
             this.anim = false;
-            this.columns = this.options.steps / this.options.rows;
+            this.columns = Math.ceil(this.options.steps / this.options.rows);
             this.currentFps = 15;
             this.flipped = false;
         }
@@ -671,13 +672,6 @@ var Spritz = function () {
 
             return (_emitter2 = this.emitter).off.apply(_emitter2, arguments);
         }
-    }, {
-        key: 'once',
-        value: function once() {
-            var _emitter3;
-
-            return (_emitter3 = this.emitter).once.apply(_emitter3, arguments);
-        }
 
         /**
             --- ANIMATE ---
@@ -829,12 +823,22 @@ var Spritz = function () {
             this.parentHeight = this.selector.clientHeight;
             this.parentRatio = this.parentWidth / this.parentHeight;
 
-            if (this.stepRatio >= this.parentRatio) {
-                this.canvasWidth = this.parentWidth;
-                this.canvasHeight = this.stepHeight * this.canvasWidth / this.stepWidth;
+            if (this.options.objectFit === 'contain') {
+                if (this.stepRatio >= this.parentRatio) {
+                    this.canvasWidth = this.parentWidth;
+                    this.canvasHeight = this.stepHeight * this.canvasWidth / this.stepWidth;
+                } else {
+                    this.canvasHeight = this.parentHeight;
+                    this.canvasWidth = this.stepWidth * this.canvasHeight / this.stepHeight;
+                }
             } else {
-                this.canvasHeight = this.parentHeight;
-                this.canvasWidth = this.stepWidth * this.canvasHeight / this.stepHeight;
+                if (this.stepRatio >= this.parentRatio) {
+                    this.canvasHeight = this.parentHeight;
+                    this.canvasWidth = this.stepWidth * this.canvasHeight / this.stepHeight;
+                } else {
+                    this.canvasWidth = this.parentWidth;
+                    this.canvasHeight = this.stepHeight * this.canvasWidth / this.stepWidth;
+                }
             }
 
             this.canvas.width = this.canvasWidth;
@@ -872,7 +876,7 @@ var Spritz = function () {
         key: '_drawPicture',
         value: function _drawPicture() {
             // draw picture into canvas
-            var targetColumn = (this.currentStep - 1) % this.columns;
+            var targetColumn = Math.floor((this.currentStep - 1) % this.columns);
             var targetRow = Math.floor((this.currentStep - 1) / this.columns);
 
             var posX = targetColumn * this.stepWidth;
@@ -880,14 +884,14 @@ var Spritz = function () {
 
             this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
 
-            this.ctx.drawImage(this.picture, Math.round(posX) + 0.5, Math.round(posY) + 0.5, this.stepWidth, this.stepHeight, 0, 0, this.canvasWidth, this.canvasHeight);
+            this.ctx.drawImage(this.picture, Math.round(posX), Math.round(posY), this.stepWidth, this.stepHeight, 0, 0, this.canvasWidth, this.canvasHeight);
         }
     }, {
         key: '_createCanvas',
         value: function _createCanvas() {
             // create html5 canvas
             this.canvas = document.createElement('canvas');
-            this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;z-index:1;-webkit-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);-ms-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);');
+            this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;-webkit-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);-ms-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);');
 
             this.container = document.createElement('div');
             this.container.setAttribute('style', 'width:100%;height:100%;');

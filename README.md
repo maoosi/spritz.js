@@ -75,6 +75,9 @@ Option | Type | Default | Description
 `picture` | *array* | `[]` | Array of picture objects to be used as Sprite. The syntax is close to the new HTML5 "picture" element. [More details below.](#picture)
 `steps` | *integer* | `1` | Number of steps (or frames) composing the sprite.
 `rows` | *integer* | `1` | Number of rows (or lines) composing the sprite.
+`objectFit` | *string* | `contain` | Specifies how the sprite should be fitted to the parent. Values: `contain` or `cover`.
+
+Sprite object will be displayed as per background-size .
 
 ### Picture
 
