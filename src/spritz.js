@@ -13,7 +13,8 @@ export default class Spritz {
             picture: options.picture || [],
             steps: options.steps || 1,
             rows: options.rows || 1,
-            objectFit: options.objectFit || 'contain'
+            objectFit: options.objectFit || 'contain',
+            position: options.position || false
         }
 
         this.selector = typeof selector === 'string'
@@ -496,8 +497,9 @@ export default class Spritz {
         this.canvas = document.createElement('canvas')
         this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;-webkit-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);-ms-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);')
 
+        let position = this.options.position ? this.options.position : ''
         this.container = document.createElement('div')
-        this.container.setAttribute('style', 'width:100%;height:100%;')
+        this.container.setAttribute('style', 'width:100%;height:100%;' + position)
         this.container.appendChild(this.canvas)
 
         this.selector.appendChild(this.container)
