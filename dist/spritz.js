@@ -1,5 +1,5 @@
 /*!
-* spritz.js 2.0.4 - A small, modern, responsive, sprites animation library.
+* spritz.js 2.0.5 - A small, modern, responsive, sprites animation library.
 * Copyright (c) 2017 maoosi <hello@sylvainsimao.fr> - https://github.com/maoosi/spritz.js
 * License: MIT
 */
@@ -894,7 +894,7 @@ var Spritz = function () {
             this.canvas = document.createElement('canvas');
             this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;-webkit-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);-ms-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);');
 
-            var position = this.options.position ? this.options.position : '';
+            var position = this.options.position ? 'position:' + this.options.position + ';' : '';
             this.container = document.createElement('div');
             this.container.setAttribute('style', 'width:100%;height:100%;' + position);
             this.container.appendChild(this.canvas);
