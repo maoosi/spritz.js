@@ -12,7 +12,7 @@
 * **Lightweight** - under 6KB minified and gzipped
 * **Responsive** - syntax following the new HTML5 "picture" element
 * **Modern** - written in ES6 JavaScript, no jQuery required
-* **[Compatible](#browser-support)** - IE8+ support, mobile support
+* **[Compatible](#browser-support)** - IE10+ support, mobile support
 * **[Chainable API](#api)** - play, pause, wait, and more...
 
 
@@ -38,7 +38,7 @@ npm i spritz.js --save
 ### Unpkg CDN
 
 ```html
-<script src="https://unpkg.com/spritz.js/dist/spritz.js"></script>
+<script src="https://unpkg.com/spritz.js@2.1.0/dist/spritz.js"></script>
 ```
 
 ## Usage
@@ -70,12 +70,11 @@ Spritz('#selector', {
 
 Option details are detailed below.
 
-Option | Type | Default | Description
----|---|---|---
-`picture` | *array* | `[]` | Array of picture objects to be used as Sprite. The syntax is close to the new HTML5 "picture" element. [More details below.](#picture)
-`steps` | *integer* | `1` | Number of steps (or frames) composing the sprite.
-`rows` | *integer* | `1` | Number of rows (or lines) composing the sprite.
-`objectFit` | *string* | `contain` | Specifies how the sprite should be fitted to the parent. Values: `contain` or `cover`.
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `picture` | *array* | `[]` | Array of picture objects to be used as Sprite. The syntax is close to the new HTML5 "picture" element. [More details below.](#picture) |
+| `steps` | *integer* | `1` | Number of steps (or frames) composing the sprite. |
+| `rows` | *integer* | `1` | Number of rows (or lines) composing the sprite. |
 
 Sprite object will be displayed as per background-size .
 
@@ -85,12 +84,13 @@ The `picture` option syntax is close to the new HTML5 "picture" element. The lib
 
 **Parameters:**
 
-Key | Type | Description
----|---|---|---
-`srcset` | required | Accepts a single image file path (e.g. `srcset: 'kitten.png'`). WebP format accepted for compatible browsers (built-in detection).
-`media ` | optional | Accepts any valid media query that you would normally find in a CSS @media selector (e.g. `media: '(max-width: 1200px)'`).
-`width ` | required | Specify the full width in pixels, of the sprite source image (e.g. `width: 7800`).
-`height ` | required | Specify the full width in pixels, of the sprite source image (e.g. `height: 2829`).
+| Key | Type | Description |
+| --- | --- | --- |
+| `srcset` | required | Accepts a single image file path (e.g. `srcset: 'kitten.png'`). WebP format accepted for compatible browsers (built-in detection). |
+| `media ` | optional | Accepts any valid media query that you would normally find in a CSS @media selector (e.g. `media: '(max-width: 1200px)'`). |
+| `width ` | required | Specify the full width in pixels, of the sprite source image (e.g. `width: 7800`). |
+| `height ` | required | Specify the full width in pixels, of the sprite source image (e.g. `height: 2829`). |
+| `objectFit` | optional | Specifies how the sprite should be fitted to the parent. Values: `contain` or `cover`. Default: `contain`. |
 
 **Example:**
 
@@ -99,6 +99,7 @@ Key | Type | Description
 	{
 		srcset: 'kitten-highres.png',
 		media: '(min-width: 1200px)',
+		objectFit: 'cover',
 		width: 7800, height: 2829
 	},
 	{
@@ -320,6 +321,7 @@ Fully supported by Evergreen Browsers (Edge, Opera, Safari, Firefox & Chrome) an
 
 ## Projects Using It !
 
+* **Airbnb** | Marriage Equality campaign in Australia | https://untilweallbelong.com
 * **Mars Australia** | M&M’S® Personalise Your Christmas Bucket | https://mms.myer.com.au
 * **TAC Victoria** | Meet Graham | http://www.meetgraham.com.au
 * **Mars Australia** | SNICKERS® Hungerithm | http://www.hungerithm.com
