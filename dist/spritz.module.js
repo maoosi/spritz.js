@@ -1,5 +1,5 @@
 /*!
-* spritz.js 2.0.5 - A small, modern, responsive, sprites animation library.
+* spritz.js 2.1.0 - A small, modern, responsive, sprites animation library.
 * Copyright (c) 2017 maoosi <hello@sylvainsimao.fr> - https://github.com/maoosi/spritz.js
 * License: MIT
 */
@@ -311,9 +311,7 @@ var Spritz = function () {
         this.options = {
             picture: options.picture || [],
             steps: options.steps || 1,
-            rows: options.rows || 1,
-            objectFit: options.objectFit || 'contain',
-            position: options.position || false
+            rows: options.rows || 1
         };
 
         this.selector = typeof selector === 'string' ? document.querySelector(selector) : selector;
@@ -695,39 +693,41 @@ var Spritz = function () {
             var _this16 = this;
 
             // frame animation
-            if (this.animTime === undefined) {
-                this.animTime = timestamp;
-            }
+            if (this.initiated) {
+                if (this.animTime === undefined) {
+                    this.animTime = timestamp;
+                }
 
-            var seg = Math.floor((timestamp - this.animTime) / (1000 / this.currentFps));
-            var pauseAnim = false;
+                var seg = Math.floor((timestamp - this.animTime) / (1000 / this.currentFps));
+                var pauseAnim = false;
 
-            if (seg > this.animFrame) {
-                this.animFrame = seg;
-                var fromStep = this.currentStep;
-                this.currentStep = this._targetStep();
+                if (seg > this.animFrame) {
+                    this.animFrame = seg;
+                    var fromStep = this.currentStep;
+                    this.currentStep = this._targetStep();
 
-                var draw = true;
-                if (this.currentStep === this.stopAtStep) {
-                    this.currentLoop++;
-                    if (this.currentLoop === this.stopAtLoop) {
-                        draw = false;
+                    var draw = true;
+                    if (this.currentStep === this.stopAtStep) {
+                        this.currentLoop++;
+                        if (this.currentLoop === this.stopAtLoop) {
+                            draw = false;
+                        }
+                    }
+
+                    if (draw) {
+                        this._draw();
+                        this.emitter.emit('change', fromStep, this.currentStep);
+                    } else {
+                        this.pause();
+                        pauseAnim = true;
                     }
                 }
 
-                if (draw) {
-                    this._draw();
-                    this.emitter.emit('change', fromStep, this.currentStep);
-                } else {
-                    this.pause();
-                    pauseAnim = true;
+                if (!pauseAnim && !this.requireStop) {
+                    this.anim = window.requestAnimationFrame(function (timestamp) {
+                        return _this16._animate(timestamp);
+                    });
                 }
-            }
-
-            if (!pauseAnim && !this.requireStop) {
-                this.anim = window.requestAnimationFrame(function (timestamp) {
-                    return _this16._animate(timestamp);
-                });
             }
         }
     }, {
@@ -818,21 +818,21 @@ var Spritz = function () {
             this.parentHeight = this.selector.clientHeight;
             this.parentRatio = this.parentWidth / this.parentHeight;
 
-            if (this.options.objectFit === 'contain') {
+            if (this.pic.objectFit === 'cover') {
                 if (this.stepRatio >= this.parentRatio) {
-                    this.canvasWidth = this.parentWidth;
-                    this.canvasHeight = this.stepHeight * this.canvasWidth / this.stepWidth;
-                } else {
                     this.canvasHeight = this.parentHeight;
                     this.canvasWidth = this.stepWidth * this.canvasHeight / this.stepHeight;
+                } else {
+                    this.canvasWidth = this.parentWidth;
+                    this.canvasHeight = this.stepHeight * this.canvasWidth / this.stepWidth;
                 }
             } else {
                 if (this.stepRatio >= this.parentRatio) {
-                    this.canvasHeight = this.parentHeight;
-                    this.canvasWidth = this.stepWidth * this.canvasHeight / this.stepHeight;
-                } else {
                     this.canvasWidth = this.parentWidth;
                     this.canvasHeight = this.stepHeight * this.canvasWidth / this.stepWidth;
+                } else {
+                    this.canvasHeight = this.parentHeight;
+                    this.canvasWidth = this.stepWidth * this.canvasHeight / this.stepHeight;
                 }
             }
 
@@ -864,8 +864,10 @@ var Spritz = function () {
         key: '_draw',
         value: function _draw() {
             // draw sprite
-            this._setDimensions();
-            this._drawPicture();
+            if (this.initiated) {
+                this._setDimensions();
+                this._drawPicture();
+            }
         }
     }, {
         key: '_drawPicture',
@@ -888,9 +890,8 @@ var Spritz = function () {
             this.canvas = document.createElement('canvas');
             this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;-webkit-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);-ms-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);');
 
-            var position = this.options.position ? 'position:' + this.options.position + ';' : '';
             this.container = document.createElement('div');
-            this.container.setAttribute('style', 'width:100%;height:100%;' + position);
+            this.container.setAttribute('style', 'width:100%;height:100%;position:relative;');
             this.container.appendChild(this.canvas);
 
             this.selector.appendChild(this.container);

@@ -12,9 +12,7 @@ export default class Spritz {
         this.options = {
             picture: options.picture || [],
             steps: options.steps || 1,
-            rows: options.rows || 1,
-            objectFit: options.objectFit || 'contain',
-            position: options.position || false
+            rows: options.rows || 1
         }
 
         this.selector = typeof selector === 'string'
@@ -321,37 +319,39 @@ export default class Spritz {
 
     _animate (timestamp) {
     // frame animation
-        if (this.animTime === undefined) {
-            this.animTime = timestamp
-        }
+        if (this.initiated) {
+            if (this.animTime === undefined) {
+                this.animTime = timestamp
+            }
 
-        let seg = Math.floor((timestamp - this.animTime) / (1000 / this.currentFps))
-        let pauseAnim = false
+            let seg = Math.floor((timestamp - this.animTime) / (1000 / this.currentFps))
+            let pauseAnim = false
 
-        if (seg > this.animFrame) {
-            this.animFrame = seg
-            let fromStep = this.currentStep
-            this.currentStep = this._targetStep()
+            if (seg > this.animFrame) {
+                this.animFrame = seg
+                let fromStep = this.currentStep
+                this.currentStep = this._targetStep()
 
-            let draw = true
-            if (this.currentStep === this.stopAtStep) {
-                this.currentLoop ++
-                if (this.currentLoop === this.stopAtLoop) {
-                    draw = false
+                let draw = true
+                if (this.currentStep === this.stopAtStep) {
+                    this.currentLoop ++
+                    if (this.currentLoop === this.stopAtLoop) {
+                        draw = false
+                    }
+                }
+
+                if (draw) {
+                    this._draw()
+                    this.emitter.emit('change', fromStep, this.currentStep)
+                } else {
+                    this.pause()
+                    pauseAnim = true
                 }
             }
 
-            if (draw) {
-                this._draw()
-                this.emitter.emit('change', fromStep, this.currentStep)
-            } else {
-                this.pause()
-                pauseAnim = true
+            if (!pauseAnim && !this.requireStop) {
+                this.anim = window.requestAnimationFrame((timestamp) => this._animate(timestamp))
             }
-        }
-
-        if (!pauseAnim && !this.requireStop) {
-            this.anim = window.requestAnimationFrame((timestamp) => this._animate(timestamp))
         }
     }
 
@@ -426,21 +426,21 @@ export default class Spritz {
         this.parentHeight = this.selector.clientHeight
         this.parentRatio = this.parentWidth / this.parentHeight
 
-        if (this.options.objectFit === 'contain') {
+        if (this.pic.objectFit === 'cover') {
             if (this.stepRatio >= this.parentRatio) {
-                this.canvasWidth = this.parentWidth
-                this.canvasHeight = (this.stepHeight * this.canvasWidth) / this.stepWidth
-            } else {
                 this.canvasHeight = this.parentHeight
                 this.canvasWidth = (this.stepWidth * this.canvasHeight) / this.stepHeight
+            } else {
+                this.canvasWidth = this.parentWidth
+                this.canvasHeight = (this.stepHeight * this.canvasWidth) / this.stepWidth
             }
         } else {
             if (this.stepRatio >= this.parentRatio) {
-                this.canvasHeight = this.parentHeight
-                this.canvasWidth = (this.stepWidth * this.canvasHeight) / this.stepHeight
-            } else {
                 this.canvasWidth = this.parentWidth
                 this.canvasHeight = (this.stepHeight * this.canvasWidth) / this.stepWidth
+            } else {
+                this.canvasHeight = this.parentHeight
+                this.canvasWidth = (this.stepWidth * this.canvasHeight) / this.stepHeight
             }
         }
 
@@ -467,8 +467,10 @@ export default class Spritz {
 
     _draw () {
     // draw sprite
-        this._setDimensions()
-        this._drawPicture()
+        if (this.initiated) {
+            this._setDimensions()
+            this._drawPicture()
+        }
     }
 
     _drawPicture () {
@@ -497,9 +499,8 @@ export default class Spritz {
         this.canvas = document.createElement('canvas')
         this.canvas.setAttribute('style', 'position:absolute;left:50%;top:50%;-webkit-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);-ms-transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);transform:translateY(-50%) translateY(1px) translateX(-50%) translateX(1px);')
 
-        let position = this.options.position ? 'position:' + this.options.position + ';' : ''
         this.container = document.createElement('div')
-        this.container.setAttribute('style', 'width:100%;height:100%;' + position)
+        this.container.setAttribute('style', 'width:100%;height:100%;position:relative;')
         this.container.appendChild(this.canvas)
 
         this.selector.appendChild(this.container)
