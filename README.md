@@ -1,6 +1,6 @@
 # Spritz.js
 
-> :horse_racing: A small, modern, responsive, **sprites animation library**.
+> 🎞️ A small, modern, responsive, **sprites animation library**.
 
 :sparkles: **Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).**
 
