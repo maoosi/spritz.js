@@ -1,7 +1,7 @@
 import knot from 'knot.js'
 import Wait from 'wait.js'
 
-export default class Spritz {
+class Spritz {
 
     /**
         --- CORE ---
@@ -12,7 +12,8 @@ export default class Spritz {
         this.options = {
             picture: options.picture || [],
             steps: options.steps || 1,
-            rows: options.rows || 1
+            rows: options.rows || 1,
+            init: options.init || 1
         }
 
         this.selector = typeof selector === 'string'
@@ -20,12 +21,14 @@ export default class Spritz {
             : selector
 
         this.emitter = knot()
-        this.waitter = new Wait()
+        this.waitter = Wait()
         this.supportsWebP = this._supportsWebP()
 
         this.initiated = false
 
-        return this
+        return (this.options.init > 0)
+            ? this.init(this.options.init)
+            : this
     }
 
     _globalVars () {
@@ -89,25 +92,25 @@ export default class Spritz {
 
     init (step = 1) {
     // init the sprite
-        if (!this.initiated) {
-            this.initialStep = step
-            this.currentStep = step
+        return this.waitter.handle(this, () => {
+            if (!this.initiated) {
+                this.initialStep = step
+                this.currentStep = step
 
-            this._globalVars()
-            this._bindEvents()
-            this._createCanvas()
-            this._loadPicture()
+                this._globalVars()
+                this._bindEvents()
+                this._createCanvas()
+                this._loadPicture()
 
-            this.initiated = true
-            this.emitter.emit('ready')
-        }
-
-        return this
+                this.initiated = true
+                this.emitter.emit('ready')
+            }
+        })
     }
 
     destroy () {
     // destroy sprite instance
-        this.waitter.handle(() => {
+        return this.waitter.handle(this, () => {
             if (this.initiated) {
                 // stop stuff
                 this.stop()
@@ -138,103 +141,85 @@ export default class Spritz {
                 this.emitter.off('stop')
             }
         })
-
-        return this
     }
 
     play (direction = false) {
     // play animation forward
-        this.waitter.handle(() => {
+        return this.waitter.handle(this, () => {
             this.animDirection = (direction === 'backward') ? 'backward' : 'forward'
             this._startAnimation()
 
             this.emitter.emit('play', this.animDirection)
         })
-
-        return this
     }
 
     playback () {
     // play animation backward
-        this.waitter.handle(() => {
+        return this.waitter.handle(this, () => {
             this.animDirection = 'backward'
             this._startAnimation()
 
             this.emitter.emit('play', this.animDirection)
         })
-
-        return this
     }
 
     pause (silent = false) {
     // pause animation
-        this.waitter.handle(() => {
+        return this.waitter.handle(this, () => {
             this._pauseAnimation()
 
             if (!silent) {
                 this.emitter.emit('pause')
             }
         })
-
-        return this
     }
 
     stop () {
     // stop animation (= pause + reset)
-        this.waitter.handle(() => {
+        return this.waitter.handle(this, () => {
             this.pause(true)
             this.step(this.initialStep)
 
             this.emitter.emit('stop')
         })
-
-        return this
     }
 
     wait (milliseconds = 0) {
     // chainable timeout
-        this.waitter.handle(() => {
+        return this.waitter.handle(this, () => {
             this.emitter.emit('wait', milliseconds)
         }, milliseconds)
-
-        return this
     }
 
     step (step = 1) {
     // change the current frame/step
-        this.waitter.handle(() => {
+        return this.waitter.handle(this, () => {
             let fromStep = this.currentStep
             this.currentStep = step
             this._draw()
 
             this.emitter.emit('change', fromStep, this.currentStep)
         })
-
-        return this
     }
 
     fps (speed) {
     // change animation speed
-        this.waitter.handle(() => {
+        return this.waitter.handle(this, () => {
             this.currentFps = speed
         })
-
-        return this
     }
 
     until (step, loop = 1) {
     // next animation will stop at this
-        this.waitter.handle(() => {
+        return this.waitter.handle(this, () => {
             this.stopAtStep = step
             this.stopAtLoop = loop
         })
-
-        return this
     }
 
     next () {
     // go to the next frame
-        this.waitter.handle(() => {
+        return this.waitter.handle(this, () => {
             this.animDirection = 'forward'
             let fromStep = this.currentStep
             this.currentStep = this._targetStep()
@@ -242,13 +227,11 @@ export default class Spritz {
 
             this.emitter.emit('change', fromStep, this.currentStep)
         })
-
-        return this
     }
 
     prev () {
     // go to the previous frame
-        this.waitter.handle(() => {
+        return this.waitter.handle(this, () => {
             this.animDirection = 'backward'
             let fromStep = this.currentStep
             this.currentStep = this._targetStep()
@@ -256,13 +239,11 @@ export default class Spritz {
 
             this.emitter.emit('change', fromStep, this.currentStep)
         })
-
-        return this
     }
 
     get (data, callback = false) {
     // return data, then call the callback function with result
-        this.waitter.handle(() => {
+        return this.waitter.handle(this, () => {
             switch (data) {
                 case 'step':
                     return callback !== false ? callback.call(this, this.currentStep) : this.currentStep
@@ -272,13 +253,11 @@ export default class Spritz {
                     return false
             }
         })
-
-        return this
     }
 
     flip () {
     // flip the sprite horizontally
-        this.waitter.handle(() => {
+        return this.waitter.handle(this, () => {
             let css = this.flipped
                 ? 'width:100%;height:100%;'
                 : 'width:100%;height:100%;-webkit-transform:scale(-1, 1);-ms-transform:scale(-1, 1);transform:scale(-1, 1);-webkit-filter:FlipH;filter:FlipH;'
@@ -287,8 +266,6 @@ export default class Spritz {
             this.flipped = !this.flipped
             this.emitter.emit('flip')
         })
-
-        return this
     }
 
     on (...args) { return this.emitter.on(...args) }
@@ -332,18 +309,19 @@ export default class Spritz {
                 let fromStep = this.currentStep
                 this.currentStep = this._targetStep()
 
-                let draw = true
+                let continueAnimate = true
                 if (this.currentStep === this.stopAtStep) {
                     this.currentLoop ++
                     if (this.currentLoop === this.stopAtLoop) {
-                        draw = false
+                        continueAnimate = false
                     }
                 }
 
-                if (draw) {
+                if (continueAnimate) {
                     this._draw()
                     this.emitter.emit('change', fromStep, this.currentStep)
                 } else {
+                    this._draw()
                     this.pause()
                     pauseAnim = true
                 }
@@ -508,3 +486,5 @@ export default class Spritz {
     }
 
 }
+
+export default (...args) => { return new Spritz(...args) }

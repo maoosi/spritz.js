@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="x-ua-compatible" content="IE=edge,chrome=1">
 
-    <title>spritz.js</title>
+    <title>Spritz.js</title>
 
     <style media="screen">
         body {
@@ -27,7 +27,7 @@
     <script src="../dist/spritz.js"></script>
 
     <script>
-        const sprite = new Spritz('#sprite', {
+        const sprite = Spritz('#sprite', {
             picture: [
                 {
                     srcset: 'sprites/graham-hd.png',
@@ -45,7 +45,7 @@
             ],
         	steps: 18,
         	rows: 3
-        }).init(2)
+        })
 
         sprite.on('resize', (pic) => {
             console.log(pic)
