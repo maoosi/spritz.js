@@ -1,13 +1,10 @@
 # Spritz.js
 
-> 🚀 A small, modern, responsive, **sprites animation library**.
+⚡️🎞️ The last **Sprites Animation Library** you'll ever need!
 
-✨ **Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).**
+[![Gemnasium](https://img.shields.io/gemnasium/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/maoosi/spritz.js/master/LICENSE.md) [![GitHub release](https://img.shields.io/github/release/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub issues](https://img.shields.io/github/issues/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js/issues)
 
-
-## Features
-
-**Can be used for:** 360 viewers, interactive animations, HTML5 games...
+Can be used for interactive animations, 360 viewers, HTML5 games...
 
 * **Lightweight** - under 6KB minified and gzipped
 * **Responsive** - syntax following the new HTML5 "picture" element
@@ -15,16 +12,27 @@
 * **[Compatible](#browser-support)** - IE10+ support, mobile support
 * **[Chainable API](#api)** - play, pause, wait, and more...
 
+## Projects using it!
+
+![alt text](projects-using-spritz.jpg "Projects using Spritz.js")
+
+- **Airbnb** | *Marriage Equality campaign in Australia* | [untilweallbelong.com](https://untilweallbelong.com)
+- **TAC Victoria** | *Meet Graham* | [meetgraham.com.au](http://www.meetgraham.com.au)
+- **Mars Australia** | *M&M’S® Personalise Your Christmas Bucket* | [mms.myer.com.au](https://mms.myer.com.au)
+- **Mars Australia** | *SNICKERS® Hungerithm* | [hungerithm.com](http://www.hungerithm.com)
+
+> ✨ **Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).**
+
 
 ## Getting Started
 
 1. [Installation](#installation)
 2. [Usage](#usage)
 3. [Options](#options)
-4. [API](#api)
+4. [API / Methods](#api)
 5. [Events](#events)
 6. [Browser Support](#browser-support)
-7. [Projects Using It](#projects-using-it-)
+7. [Contribute](#contribute)
 8. [License](#license)
 
 ## Installation
@@ -38,23 +46,27 @@ npm i spritz.js --save
 ### Unpkg CDN
 
 ```html
-<script src="https://unpkg.com/spritz.js@2.1.0/dist/spritz.js"></script>
+<script src="https://unpkg.com/spritz.js@2.2.0/dist/spritz.js"></script>
 ```
 
 ## Usage
 
+The sprite will be generated inside the HTML element passed as first parameter. The canvas dimensions will depend on the width and the height of this element.
+
+```html
+<div id="#selector"></div>
+```
+
 ```javascript
-// ES6 module import
+// import the library
 import Spritz from 'spritz.js'
 
 // instantiate with options
-const sprite = new Spritz('#selector', { /* options here */ })
+const sprite = Spritz('#selector', { /* options here */ })
 
-// 🎉 build and display the sprite
-sprite.init()
+// 🎉 ready to control your sprite!
+sprite.play().wait(2000).pause()
 ```
-
-> A module export version is also available from `spritz.module.js`
 
 ## Options
 
@@ -68,19 +80,20 @@ Spritz('#selector', {
 })
 ```
 
-Option details are detailed below.
+Full option details are detailed below.
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `picture` | *array* | `[]` | Array of picture objects to be used as Sprite. The syntax is close to the new HTML5 "picture" element. [More details below.](#picture) |
 | `steps` | *integer* | `1` | Number of steps (or frames) composing the sprite. |
 | `rows` | *integer* | `1` | Number of rows (or lines) composing the sprite. |
+| `init` | *integer* | `1` | Initial sprite step. Set to `false` to disable the default auto‑init() feature. |
 
 Sprite object will be displayed as per background-size .
 
 ### Picture
 
-The `picture` option syntax is close to the new HTML5 "picture" element. The library will choose the most suitable source according to the current layout of the page and the device it will be displayed on. Sense of reading is following the array order (first to last element).
+The `picture` option syntax is close to the new HTML5 "picture" element. The library will choose the most suitable source according to the current layout of the page and the browser it will be displayed into. Sense of reading is following the array order (first to last element).
 
 **Parameters:**
 
@@ -113,13 +126,12 @@ The `picture` option syntax is close to the new HTML5 "picture" element. The lib
 ]
 ```
 
-
 ## API
 
 Spritz exposes the following chainable API methods.
 
-* [init](#init)
-* [destroy](#destroy)
+### Basic methods
+
 * [fps](#fps)
 * [play](#play)
 * [playback](#playback)
@@ -129,28 +141,16 @@ Spritz exposes the following chainable API methods.
 * [step](#step)
 * [next](#next)
 * [prev](#prev)
+
+### Advanced methods
+
+* [init](#init)
+* [destroy](#destroy)
 * [until](#until)
 * [flip](#flip)
 * [get](#get)
 
-### .init()
-
-Build and load the sprite, within its selector. Initial step can be passed as parameter.
-
-```javascript
-sprite.init() // Basic usage
-sprite.init(2) // Initial step is 2 (default = 1)
-```
-
-### .destroy()
-
-Completely destroy the sprite element and behaviors. Restore the initial state.
-
-```javascript
-sprite.destroy()
-```
-
-### .fps()
+#### .fps()
 
 Change animation speed from its default value (15).
 
@@ -158,7 +158,7 @@ Change animation speed from its default value (15).
 sprite.fps(10) // Change speed to 10fps
 ```
 
-### .play()
+#### .play()
 
 Play animation forward (using the current fps value). A `backward` option can be passed as parameter.
 
@@ -167,7 +167,7 @@ sprite.play()
 sprite.play('backward') // Alternative way to play an animation backward
 ```
 
-### .playback()
+#### .playback()
 
 Play animation backward (using the current fps value).
 
@@ -175,7 +175,7 @@ Play animation backward (using the current fps value).
 sprite.playback()
 ```
 
-### .pause()
+#### .pause()
 
 Pause the current animation.
 
@@ -183,7 +183,7 @@ Pause the current animation.
 sprite.pause()
 ```
 
-### .stop()
+#### .stop()
 
 Stop the current animation (pause and reset to the initial step).
 
@@ -191,7 +191,7 @@ Stop the current animation (pause and reset to the initial step).
 sprite.stop()
 ```
 
-### .wait()
+#### .wait()
 
 Chainable timeout that can be used to delay stuff. The delay value is to be passed as parameter, in milliseconds.
 
@@ -205,7 +205,7 @@ sprite
 	.stop() // Then stop animation
 ```
 
-### .step()
+#### .step()
 
 Change the current step (or frame) of the sprite. Target step to be passed as parameter.
 
@@ -213,7 +213,7 @@ Change the current step (or frame) of the sprite. Target step to be passed as pa
 sprite.step(5) // Change current step/frame to 5
 ```
 
-### .next()
+#### .next()
 
 Go to the next step (or frame).
 
@@ -221,7 +221,7 @@ Go to the next step (or frame).
 sprite.next()
 ```
 
-### .prev()
+#### .prev()
 
 Go to the previous step (or frame).
 
@@ -229,7 +229,24 @@ Go to the previous step (or frame).
 sprite.prev()
 ```
 
-### .until()
+#### .init()
+
+Build and load the sprite, within its selector. Initial step can be passed as parameter.
+
+```javascript
+sprite.init() // Basic usage
+sprite.init(2) // Initial step is 2 (default = 1)
+```
+
+#### .destroy()
+
+Completely destroy the sprite element and behaviors. Restore the initial state.
+
+```javascript
+sprite.destroy()
+```
+
+#### .until()
 
 The next animation will automatically pause at the value specified. Two parameters can be used:
 
@@ -246,7 +263,7 @@ sprite
 	.play() // Play animation (will automatically stop at step/frame 7)
 ```
 
-### .flip()
+#### .flip()
 
 Flip the sprite horizontally.
 
@@ -254,7 +271,7 @@ Flip the sprite horizontally.
 sprite.flip()
 ```
 
-### .get()
+#### .get()
 
 Return data, then call the callback function with result. Two parameters can be used:
 
@@ -318,16 +335,15 @@ Fully supported by Evergreen Browsers (Edge, Opera, Safari, Firefox & Chrome) an
 <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
 ```
 
+## Contribute
 
-## Projects Using It !
-
-* **Airbnb** | Marriage Equality campaign in Australia | https://untilweallbelong.com
-* **Mars Australia** | M&M’S® Personalise Your Christmas Bucket | https://mms.myer.com.au
-* **TAC Victoria** | Meet Graham | http://www.meetgraham.com.au
-* **Mars Australia** | SNICKERS® Hungerithm | http://www.hungerithm.com
+```bash
+npm run watch
+npm run test
+```
 
 ## License
 
 [MIT](https://github.com/maoosi/spritz.js/blob/master/LICENSE.md) © 2017 Sylvain Simao
 
-[![Built With Love](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
+[![forthebadge](http://forthebadge.com/images/badges/powered-by-electricity.svg)](http://forthebadge.com)
