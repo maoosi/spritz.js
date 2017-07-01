@@ -1,28 +1,22 @@
 # Spritz.js
 
-⚡️🎞️ The last **Sprites Animation Library** you'll ever need!
+⚡️🎞️ Modern and delightful **sprites animation library** for JavaScript!
 
 [![Gemnasium](https://img.shields.io/gemnasium/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/maoosi/spritz.js/master/LICENSE.md) [![GitHub release](https://img.shields.io/github/release/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub issues](https://img.shields.io/github/issues/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js/issues)
 
-Can be used for interactive animations, 360 viewers, HTML5 games...
-
-* **Lightweight** - under 6KB minified and gzipped
-* **Responsive** - syntax following the new HTML5 "picture" element
-* **Modern** - written in ES6 JavaScript, no jQuery required
-* **[Compatible](#browser-support)** - IE10+ support, mobile support
-* **[Chainable API](#api)** - play, pause, wait, and more...
-
-## Projects using it!
-
-![alt text](projects-using-spritz.jpg "Projects using Spritz.js")
-
-- **Airbnb** | *Marriage Equality campaign in Australia* | [untilweallbelong.com](https://untilweallbelong.com)
-- **TAC Victoria** | *Meet Graham* | [meetgraham.com.au](http://www.meetgraham.com.au)
-- **Mars Australia** | *M&M’S® Personalise Your Christmas Bucket* | [mms.myer.com.au](https://mms.myer.com.au)
-- **Mars Australia** | *SNICKERS® Hungerithm* | [hungerithm.com](http://www.hungerithm.com)
+*Can be used for interactive animations, 360 viewers, HTML5 games, and more...*
 
 > ✨ **Try the [**Demo samples**](http://codepen.io/collection/XQZjMx/).**
 
+![](spritz.cover.gif)
+
+## Features
+
+* **Lightweight** - under 3.3KB minified and gzipped.
+* **Responsive** - syntax following the new HTML5 `picture` element.
+* **Modern** - written in ES6 JavaScript, no jQuery required.
+* **[Compatible](#browser-support)** - IE10+ support, mobile support.
+* **[Chainable API](#api)** - play, pause, wait, and more...
 
 ## Getting Started
 
@@ -33,7 +27,8 @@ Can be used for interactive animations, 360 viewers, HTML5 games...
 5. [Events](#events)
 6. [Browser Support](#browser-support)
 7. [Contribute](#contribute)
-8. [License](#license)
+8. [Projects using it!](#projects-using-it-)
+9. [License](#license)
 
 ## Installation
 
@@ -84,7 +79,7 @@ Full option details are detailed below.
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `picture` | *array* | `[]` | Array of picture objects to be used as Sprite. The syntax is close to the new HTML5 "picture" element. [More details below.](#picture) |
+| `picture` | *array* | `[]` | Array of picture objects to be used as Sprite. The syntax is close to the new HTML5 `picture` element. [More details below.](#picture) |
 | `steps` | *integer* | `1` | Number of steps (or frames) composing the sprite. |
 | `rows` | *integer* | `1` | Number of rows (or lines) composing the sprite. |
 | `init` | *integer* | `1` | Initial sprite step. Set to `false` to disable the default auto‑init() feature. |
@@ -93,7 +88,7 @@ Sprite object will be displayed as per background-size .
 
 ### Picture
 
-The `picture` option syntax is close to the new HTML5 "picture" element. The library will choose the most suitable source according to the current layout of the page and the browser it will be displayed into. Sense of reading is following the array order (first to last element).
+The picture option syntax is close to the new HTML5 `picture` element. The library will choose the most suitable source according to the current layout of the page and the browser it will be displayed into. Sense of reading is following the array order (first to last element).
 
 **Parameters:**
 
@@ -329,7 +324,7 @@ sprite.on('resize', (picture) => { /* Your code here */ })
 
 Fully supported by Evergreen Browsers (Edge, Opera, Safari, Firefox & Chrome) and IE 10+ browsers.
 
-> For **old browsers support like IE8 or IE9**, you'll need to manually include the following Polyfill library on your website:
+> For **older browsers support like IE8 or IE9**, you'll need to manually include the following Polyfill library on your website:
 >
 ```html
 <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
@@ -341,6 +336,15 @@ Fully supported by Evergreen Browsers (Edge, Opera, Safari, Firefox & Chrome) an
 npm run watch
 npm run test
 ```
+
+## Projects using it!
+
+![](spritz.projects.jpg)
+
+- **Airbnb** | *Marriage Equality campaign in Australia* | [untilweallbelong.com](https://untilweallbelong.com)
+- **TAC Victoria** | *Meet Graham* | [meetgraham.com.au](http://www.meetgraham.com.au)
+- **Mars Australia** | *M&M’S® Personalise Your Christmas Bucket* | [mms.myer.com.au](https://mms.myer.com.au)
+- **Mars Australia** | *SNICKERS® Hungerithm* | [hungerithm.com](http://www.hungerithm.com)
 
 ## License
 

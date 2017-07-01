@@ -27,60 +27,99 @@
     <script src="../dist/spritz.js"></script>
 
     <script>
-        const sprite = Spritz('#sprite', {
-            picture: [
-                {
-                    srcset: 'sprites/graham-hd.png',
-                    media: '(min-width: 1200px)',
-                    width: 7800, height: 2829
-                },
-                {
-                    srcset: 'sprites/graham.webp',
-                    width: 3900, height: 1415
-                },
-                {
-                    srcset: 'sprites/graham.png',
-                    width: 3900, height: 1415
+        let testCase = 3
+        let sprite = null
+
+        if (testCase === 1) {
+        // Test 1
+
+            let sprite = Spritz('#sprite', {
+                picture: [
+                    {
+                        srcset: 'spritesheets/multisrc/graham-hd.png',
+                        media: '(min-width: 1200px)',
+                        width: 7800, height: 2829
+                    },
+                    {
+                        srcset: 'spritesheets/multisrc/graham.webp',
+                        width: 3900, height: 1415
+                    },
+                    {
+                        srcset: 'spritesheets/multisrc/graham.png',
+                        width: 3900, height: 1415
+                    }
+                ],
+            	steps: 18,
+            	rows: 3
+            })
+
+            sprite.on('resize', (pic) => {
+                console.log(pic)
+            })
+
+            sprite.on('change', (from, to) => {
+                if (to == 9) {
+                    sprite.pause().wait(2000).play()
                 }
-            ],
-        	steps: 18,
-        	rows: 3
-        })
+            })
 
-        sprite.on('resize', (pic) => {
-            console.log(pic)
-        })
+            sprite.fps(8).play()
 
-        sprite.on('change', (from, to) => {
-            if (to == 9) {
-                sprite.pause().wait(2000).play()
-            }
-        })
+        } else if (testCase === 2) {
+        // Test 2
 
-        sprite.play()
+            let sprite = Spritz('#sprite', {
+                picture: [
+                    {
+                        srcset: 'spritesheets/multisrc/graham-hd.png',
+                        media: '(min-width: 1200px)',
+                        width: 7800, height: 2829
+                    },
+                    {
+                        srcset: 'spritesheets/multisrc/graham.webp',
+                        width: 3900, height: 1415
+                    },
+                    {
+                        srcset: 'spritesheets/multisrc/graham.png',
+                        width: 3900, height: 1415
+                    }
+                ],
+                steps: 18,
+                rows: 3,
+                init: false
+            })
 
-        sprite.on('load', () => {
-            let logger = false
+            sprite.on('load', () => {
+                sprite
+                    .fps(5)
+                    .play()
+                    .wait(1000)
+                    .pause()
+                    .next()
+                    .get('step', (result) => { console.log(result) })
+                    .get('picture', (result) => { console.log(result) })
+                    .wait(1000)
+                    .play()
+                    .wait(1000)
+                    .fps(10)
+                    .until(8, 2)
+                    .play()
+                    .wait(2000)
+                    .playback()
+                    .wait(4000)
+                    .pause()
+            })
 
-            //sprite.play()
-                // .wait(1000)
-                // .next()
-                // .get('step', (result) => { console.log(result) })
-                // .get('picture', (result) => { console.log(result) })
-                // .wait(1000)
-                // .flip()
-                // .next()
-                // .wait(1000)
-                // .flip()
-                // .prev()
-                // .fps(10)
-                // .until(8, 2)
-                // .play()
-                // .wait(2000)
-                // .playback()
-                // .wait(4000)
-                // .pause()
-        })
+            sprite.init()
+
+        } else if (testCase === 3) {
+
+            let sprite = Spritz('#sprite', {
+                picture: { srcset: 'spritesheets/singlerow/walking-man.jpg' },
+                steps: 8
+            }).flip().fps(6).play()
+
+        }
     </script>
 
 </body>

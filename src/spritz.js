@@ -13,8 +13,11 @@ class Spritz {
             picture: options.picture || [],
             steps: options.steps || 1,
             rows: options.rows || 1,
-            init: options.init || 1
+            init: (typeof options.init !== 'undefined') ? options.init : 1,
+            testunit: options.testunit || false
         }
+
+        if (! Array.isArray(this.options.picture)) this.options.picture = [this.options.picture]
 
         this.selector = typeof selector === 'string'
             ? document.querySelector(selector)
@@ -68,7 +71,7 @@ class Spritz {
 
     _bindEvents () {
     // create events listeners
-        this.resize = this._throttle((event) => {
+        this.resize = this._throttle(() => {
             this._resize()
         }, 250)
 
@@ -338,9 +341,12 @@ class Spritz {
         if (!this.anim) {
             this.requireStop = false
             this.animTime = undefined
-            this.animFrame = -1
+            this.animFrame = 0
             this.currentLoop = 0
             this.anim = window.requestAnimationFrame((timestamp) => this._animate(timestamp))
+        } else {
+            this.pause()
+            this.play(this.animDirection)
         }
     }
 
@@ -380,7 +386,7 @@ class Spritz {
     // return true if webP is supported
         let canvas = document.createElement('canvas')
         canvas.width = canvas.height = 1
-        return canvas.toDataURL && canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0
+        return canvas.toDataURL && canvas.toDataURL('image/webp') && canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0
     }
 
     _getExtension (filename) {
@@ -434,6 +440,9 @@ class Spritz {
     // load source picture
         this.picture = new Image()
         this.picture.onload = () => {
+            if (!this.pic.width) this.pic.width = this.picture.naturalWidth
+            if (!this.pic.height) this.pic.height = this.picture.naturalHeight
+
             if (!this.loaded) {
                 this.emitter.emit('load', this.pic)
                 this.loaded = true
@@ -459,17 +468,19 @@ class Spritz {
         let posX = targetColumn * this.stepWidth
         let posY = targetRow * this.stepHeight
 
-        this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
+        if (!this.options.testunit) {
+            this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight)
 
-        this.ctx.drawImage(
-            this.picture,
-            Math.round(posX), Math.round(posY),
-            this.stepWidth,
-            this.stepHeight,
-            0, 0,
-            this.canvasWidth,
-            this.canvasHeight
-        )
+            this.ctx.drawImage(
+                this.picture,
+                Math.round(posX), Math.round(posY),
+                this.stepWidth,
+                this.stepHeight,
+                0, 0,
+                this.canvasWidth,
+                this.canvasHeight
+            )
+        }
     }
 
     _createCanvas () {

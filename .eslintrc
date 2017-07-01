@@ -6,6 +6,9 @@
         "mocha": true
     },
     "globals": {
-        "document": true
+        "document": true,
+        "window": true,
+        "Image": true,
+        "expect": true
     }
 }

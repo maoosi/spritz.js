@@ -1,6 +1,7 @@
 import babel from 'rollup-plugin-babel'
 import babelrc from 'babelrc-rollup'
 import uglify from 'rollup-plugin-uglify'
+import resolve from 'rollup-plugin-node-resolve'
 import { minify } from 'uglify-js-harmony'
 
 let pkg = require('./package.json')
@@ -27,7 +28,8 @@ export default {
                     return (comment.type === 'comment2' && /@license/i.test(comment.value))
                 }
             }
-        }, minify)
+        }, minify),
+        resolve({ jsnext: true, main: true })
     ],
     targets: [
         {

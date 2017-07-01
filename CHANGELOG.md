@@ -3,15 +3,15 @@
 
 ## v2.2.0
 
-- [x] Change: `new Spritz().init()` combined into `Spritz()`.
-- [x] Bug fix: `.until()` was stoping the animation a step too early.
-- [x] Dev workflow moved from `Gulp` to `Rollup`.
-- [x] Added `CHANGELOG.md`.
-- [x] Dependency update: `wait.js@3.0.0`
-- [x] Dependency update: `knot.js@1.1.5`
-- [x] Documentation enhancement
-- [ ] Automated tests added.
-- [ ] New option `init`: Specifies if the sprite should be automatically initiated.
+- Change: `new Spritz().init()` combined into `Spritz()`.
+- Bug fix: `.until()` was stoping the animation a step too early.
+- New option `init`: Specifies if the sprite should be automatically initiated.
+- Dev workflow moved from `Gulp` to `Rollup`.
+- Added `CHANGELOG.md`.
+- Dependency update: `wait.js@3.0.0`
+- Dependency update: `knot.js@1.1.5`
+- Documentation enhancement
+- Unit testing with Jest
 
 
 ## v2.1.0
