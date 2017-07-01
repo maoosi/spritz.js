@@ -1,6 +1,3 @@
-// - Test events params
-
-
 import Spritz from '../'
 
 /* ===============
@@ -8,7 +5,7 @@ import Spritz from '../'
 =============== */
 
 require('raf').polyfill()
-require('canvas')
+require('canvas-prebuilt')
 
 window.matchMedia = () => {
     return {
