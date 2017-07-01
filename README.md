@@ -2,7 +2,7 @@
 
 ⚡️🎞️ Modern and delightful **sprites animation library** for JavaScript!
 
-[![Gemnasium](https://img.shields.io/gemnasium/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/maoosi/spritz.js/master/LICENSE.md) [![GitHub release](https://img.shields.io/github/release/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub issues](https://img.shields.io/github/issues/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js/issues) [![Build Status](https://travis-ci.org/maoosi/spritz.js.svg?branch=master)](https://travis-ci.org/maoosi/spritz.js)
+[![Gemnasium](https://img.shields.io/gemnasium/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/maoosi/spritz.js/master/LICENSE.md) [![GitHub release](https://img.shields.io/github/release/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub issues](https://img.shields.io/github/issues/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js/issues)
 
 *Can be used for interactive animations, 360 viewers, HTML5 games, and more...*
 
