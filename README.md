@@ -2,7 +2,7 @@
 
 ⚡️🎞️ Modern and delightful **sprites animation library** for JavaScript!
 
-[![Gemnasium](https://img.shields.io/gemnasium/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/maoosi/spritz.js/master/LICENSE.md) [![GitHub release](https://img.shields.io/github/release/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub issues](https://img.shields.io/github/issues/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js/issues)
+[![Gemnasium](https://img.shields.io/gemnasium/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/maoosi/spritz.js/master/LICENSE.md) [![GitHub release](https://img.shields.io/github/release/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub issues](https://img.shields.io/github/issues/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js/issues) [![Build Status](https://travis-ci.org/maoosi/spritz.js.svg?branch=master)](https://travis-ci.org/maoosi/spritz.js)
 
 *Can be used for interactive animations, 360 viewers, HTML5 games, and more...*
 
@@ -32,6 +32,12 @@
 
 ## Installation
 
+### Using Yarn
+
+```bash
+yarn add spritz.js
+```
+
 ### Using NPM
 
 ```bash
@@ -41,7 +47,7 @@ npm i spritz.js --save
 ### Unpkg CDN
 
 ```html
-<script src="https://unpkg.com/spritz.js@2.2.0/dist/spritz.js"></script>
+<script src="https://unpkg.com/spritz.js@2.2.1/dist/spritz.js"></script>
 ```
 
 ## Usage

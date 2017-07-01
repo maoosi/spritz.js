@@ -1,6 +1,12 @@
 # Changelog
 
 
+## v2.2.1
+
+- Package published to Yarn
+- Travis CI
+
+
 ## v2.2.0
 
 - Change: `new Spritz().init()` combined into `Spritz()`.

@@ -6,12 +6,9 @@
     "module": "dist/spritz.mjs",
     "jsnext:main": "dist/spritz.mjs",
     "author": "maoosi <hello@sylvainsimao.fr>",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/maoosi/spritz.js.git"
-    },
+    "repository": "https://github.com/maoosi/spritz.js.git",
     "bugs": {
         "url": "https://github.com/maoosi/spritz.js/issues"
     },
