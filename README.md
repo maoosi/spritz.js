@@ -27,7 +27,7 @@
 5. [Events](#events)
 6. [Browser Support](#browser-support)
 7. [Contribute](#contribute)
-8. [Projects using it!](#projects-using-it-)
+8. [Projects using it!](#projects-using-it)
 9. [License](#license)
 
 ## Installation
