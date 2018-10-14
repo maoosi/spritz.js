@@ -47,7 +47,7 @@ npm i spritz.js --save
 ### Unpkg CDN
 
 ```html
-<script src="https://unpkg.com/spritz.js@2.2.1/dist/spritz.js"></script>
+<script src="https://unpkg.com/spritz.js@2.2.2/dist/spritz.js"></script>
 ```
 
 ## Usage
