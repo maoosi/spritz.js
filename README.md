@@ -339,8 +339,8 @@ Fully supported by Evergreen Browsers (Edge, Opera, Safari, Firefox & Chrome) an
 ## Contribute
 
 ```bash
-npm run watch
-npm run test
+yarn run watch
+yarn run test
 ```
 
 ## Projects using it!
