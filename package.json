@@ -3,6 +3,8 @@
     "description": "Modern and delightful sprites animation library for JavaScript!",
     "homepage": "https://github.com/maoosi/spritz.js",
     "main": "dist/spritz.js",
+    "jsnext:main": "dist/spritz.mjs",
+    "module": "dist/spritz.mjs",
     "author": "maoosi <hello@sylvainsimao.fr>",
     "version": "2.3.0",
     "license": "MIT",
@@ -47,12 +49,12 @@
         "rollup": "^1.27.0",
         "rollup-plugin-babel": "^4.3.3",
         "rollup-plugin-node-resolve": "*",
-        "rollup-plugin-uglify": "^6.0.3",
         "source-map-support": "^0.5.16",
         "uglify-js-harmony": "^2.7.7"
     },
     "dependencies": {
         "knot.js": "^1.1.5",
+        "rollup-plugin-terser": "^5.1.2",
         "wait.js": "^3.0.0"
     }
 }

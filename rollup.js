@@ -2,7 +2,7 @@ const rollup = require('rollup')
 const babel = require('rollup-plugin-babel')
 const resolve = require('rollup-plugin-node-resolve')
 const minify = require('uglify-js-harmony')
-const uglify = require('rollup-plugin-uglify').uglify
+const terser = require('rollup-plugin-terser').terser
 
 let pkg = require('./package.json')
 
@@ -23,7 +23,7 @@ rollup.rollup({
     plugins: [
         babel(),
         resolve(),
-        uglify({
+        terser({
             output: {
                 comments: (node, comment) => {
                     return (comment.type === 'comment2' && /@license/i.test(comment.value))
@@ -39,10 +39,10 @@ rollup.rollup({
         banner: attribution,
         sourcemap: true
     })
-    // bundle.write({
-    //     file: pkg.module,
-    //     format: 'es',
-    //     banner: attribution,
-    //     sourcemap: true
-    // })
+    bundle.write({
+        file: pkg.module,
+        format: 'esm',
+        banner: attribution,
+        sourcemap: true
+    })
 })
