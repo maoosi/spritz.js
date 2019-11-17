@@ -2,7 +2,7 @@
 
 📽Modern and delightful **sprites animation library** for JavaScript!
 
-[![Gemnasium](https://img.shields.io/gemnasium/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/maoosi/spritz.js/master/LICENSE.md) [![GitHub release](https://img.shields.io/github/release/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub issues](https://img.shields.io/github/issues/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js/issues)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/maoosi/spritz.js/master/LICENSE.md) [![GitHub release](https://img.shields.io/github/release/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub issues](https://img.shields.io/github/issues/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js/issues)
 
 *Can be used for interactive animations, 360 viewers, HTML5 games, and more...*
 
@@ -345,6 +345,6 @@ yarn run test
 
 ## License
 
-[MIT](https://github.com/maoosi/spritz.js/blob/master/LICENSE.md) © 2017 Sylvain Simao
+[MIT](https://github.com/maoosi/spritz.js/blob/master/LICENSE.md) © 2017-2019 Sylvain Simao
 
 [![forthebadge](http://forthebadge.com/images/badges/powered-by-electricity.svg)](http://forthebadge.com)
