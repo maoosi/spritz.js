@@ -1,11 +1,10 @@
-import Spritz from '../'
+const Spritz = require('../')
 
 /* ===============
   POLYFILLS
 =============== */
 
 require('raf').polyfill()
-require('canvas-prebuilt')
 
 window.matchMedia = () => {
     return {
@@ -14,6 +13,18 @@ window.matchMedia = () => {
         removeListener: () => {}
     }
 }
+
+Object.defineProperty(global.Image.prototype, 'src', {
+    // Define the property setter
+    set(src) {
+      if (src === 'LOAD_FAILURE_SRC') {
+        // Call with setTimeout to simulate async loading
+        setTimeout(() => this.onerror(new Error('mocked error')));
+      } else if (src === 'LOAD_SUCCESS_SRC') {
+        setTimeout(() => this.onload());
+      }
+    },
+});
 
 /* ===============
   FUNCTIONS

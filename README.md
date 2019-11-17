@@ -1,6 +1,6 @@
 # Spritz.js
 
-⚡️🎞️ Modern and delightful **sprites animation library** for JavaScript!
+📽Modern and delightful **sprites animation library** for JavaScript!
 
 [![Gemnasium](https://img.shields.io/gemnasium/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/maoosi/spritz.js/master/LICENSE.md) [![GitHub release](https://img.shields.io/github/release/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub issues](https://img.shields.io/github/issues/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js/issues)
 
@@ -342,15 +342,6 @@ Fully supported by Evergreen Browsers (Edge, Opera, Safari, Firefox & Chrome) an
 yarn run watch
 yarn run test
 ```
-
-## Projects using it!
-
-![](spritz.projects.jpg)
-
-- **Airbnb** | *Marriage Equality campaign in Australia* | [untilweallbelong.com](https://untilweallbelong.com)
-- **TAC Victoria** | *Meet Graham* | [meetgraham.com.au](http://www.meetgraham.com.au)
-- **Mars Australia** | *M&M’S® Personalise Your Christmas Bucket* | [mms.myer.com.au](https://mms.myer.com.au)
-- **Mars Australia** | *SNICKERS® Hungerithm* | [hungerithm.com](http://www.hungerithm.com)
 
 ## License
 
