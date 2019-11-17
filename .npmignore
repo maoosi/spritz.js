@@ -1,1 +1,6 @@
 test
+.vscode
+.github
+.editorconfig
+.travis.yml
+rollup.js

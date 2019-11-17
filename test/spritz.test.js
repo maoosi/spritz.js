@@ -1,11 +1,12 @@
-import Spritz from '../'
+const Spritz = require('../')
 
 /* ===============
   POLYFILLS
 =============== */
 
+const TEST_IMG = 'spritesheets/multisrc/graham.png'
+
 require('raf').polyfill()
-require('canvas-prebuilt')
 
 window.matchMedia = () => {
     return {
@@ -15,13 +16,21 @@ window.matchMedia = () => {
     }
 }
 
+Object.defineProperty(global.Image.prototype, 'src', {
+    set(src) {
+        if (src === TEST_IMG) {
+            setTimeout(() => this.onload())
+        }
+    }
+})
+
 /* ===============
   FUNCTIONS
 =============== */
 
 var sprite = null
 var spriteNode = null
-var spriteImg = 'spritesheets/multisrc/graham.png'
+var spriteImg = TEST_IMG
 
 const init = (options) => {
     spriteNode = document.createElement('div')
@@ -98,7 +107,7 @@ describe('API basic', () => {
         setTimeout(() => {
             expect(sprite.currentStep < 18).toBe(true)
             done()
-        }, 100)
+        }, 200)
 
         sprite.init(18).play('backward')
     })
@@ -107,7 +116,7 @@ describe('API basic', () => {
         setTimeout(() => {
             expect(sprite.currentStep < 18).toBe(true)
             done()
-        }, 100)
+        }, 200)
 
         sprite.init(18).playback()
     })

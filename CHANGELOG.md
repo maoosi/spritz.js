@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v2.2.2
+
+- Dependencies update
+
+
 ## v2.2.1
 
 - Package published to Yarn

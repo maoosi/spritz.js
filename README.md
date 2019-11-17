@@ -1,8 +1,8 @@
 # Spritz.js
 
-⚡️🎞️ Modern and delightful **sprites animation library** for JavaScript!
+📽Modern and delightful **sprites animation library** for JavaScript!
 
-[![Gemnasium](https://img.shields.io/gemnasium/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/maoosi/spritz.js/master/LICENSE.md) [![GitHub release](https://img.shields.io/github/release/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub issues](https://img.shields.io/github/issues/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js/issues) [![Build Status](https://travis-ci.org/maoosi/spritz.js.svg?branch=master)](https://travis-ci.org/maoosi/spritz.js)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/maoosi/spritz.js/master/LICENSE.md) [![GitHub release](https://img.shields.io/github/release/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js) [![GitHub issues](https://img.shields.io/github/issues/maoosi/spritz.js.svg)](https://github.com/maoosi/spritz.js/issues) [![Travis CI](https://travis-ci.org/maoosi/spritz.js.svg?branch=master)](https://travis-ci.org/maoosi/spritz.js)
 
 *Can be used for interactive animations, 360 viewers, HTML5 games, and more...*
 
@@ -47,7 +47,7 @@ npm i spritz.js --save
 ### Unpkg CDN
 
 ```html
-<script src="https://unpkg.com/spritz.js@2.2.1/dist/spritz.js"></script>
+<script src="https://unpkg.com/spritz.js@2.3.0/dist/spritz.js"></script>
 ```
 
 ## Usage
@@ -339,21 +339,12 @@ Fully supported by Evergreen Browsers (Edge, Opera, Safari, Firefox & Chrome) an
 ## Contribute
 
 ```bash
-npm run watch
-npm run test
+yarn run watch
+yarn run test
 ```
-
-## Projects using it!
-
-![](spritz.projects.jpg)
-
-- **Airbnb** | *Marriage Equality campaign in Australia* | [untilweallbelong.com](https://untilweallbelong.com)
-- **TAC Victoria** | *Meet Graham* | [meetgraham.com.au](http://www.meetgraham.com.au)
-- **Mars Australia** | *M&M’S® Personalise Your Christmas Bucket* | [mms.myer.com.au](https://mms.myer.com.au)
-- **Mars Australia** | *SNICKERS® Hungerithm* | [hungerithm.com](http://www.hungerithm.com)
 
 ## License
 
-[MIT](https://github.com/maoosi/spritz.js/blob/master/LICENSE.md) © 2017 Sylvain Simao
+[MIT](https://github.com/maoosi/spritz.js/blob/master/LICENSE.md) © 2017-2019 Sylvain Simao
 
 [![forthebadge](http://forthebadge.com/images/badges/powered-by-electricity.svg)](http://forthebadge.com)
