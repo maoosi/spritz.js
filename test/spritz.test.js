@@ -4,6 +4,8 @@ const Spritz = require('../')
   POLYFILLS
 =============== */
 
+const TEST_IMG = 'spritesheets/multisrc/graham.png'
+
 require('raf').polyfill()
 
 window.matchMedia = () => {
@@ -15,16 +17,12 @@ window.matchMedia = () => {
 }
 
 Object.defineProperty(global.Image.prototype, 'src', {
-    // Define the property setter
     set(src) {
-      if (src === 'LOAD_FAILURE_SRC') {
-        // Call with setTimeout to simulate async loading
-        setTimeout(() => this.onerror(new Error('mocked error')));
-      } else if (src === 'LOAD_SUCCESS_SRC') {
-        setTimeout(() => this.onload());
-      }
-    },
-});
+        if (src === TEST_IMG) {
+            setTimeout(() => this.onload())
+        }
+    }
+})
 
 /* ===============
   FUNCTIONS
@@ -32,7 +30,7 @@ Object.defineProperty(global.Image.prototype, 'src', {
 
 var sprite = null
 var spriteNode = null
-var spriteImg = 'spritesheets/multisrc/graham.png'
+var spriteImg = TEST_IMG
 
 const init = (options) => {
     spriteNode = document.createElement('div')
@@ -109,7 +107,7 @@ describe('API basic', () => {
         setTimeout(() => {
             expect(sprite.currentStep < 18).toBe(true)
             done()
-        }, 100)
+        }, 200)
 
         sprite.init(18).play('backward')
     })
@@ -118,7 +116,7 @@ describe('API basic', () => {
         setTimeout(() => {
             expect(sprite.currentStep < 18).toBe(true)
             done()
-        }, 100)
+        }, 200)
 
         sprite.init(18).playback()
     })

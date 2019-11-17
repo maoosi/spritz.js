@@ -18,7 +18,12 @@
         "360"
     ],
     "jest": {
-        "setupFiles": ["jest-canvas-mock"]
+        "setupFiles": [
+            "jest-canvas-mock"
+        ],
+        "testEnvironmentOptions": {
+            "resources": "usable"
+        }
     },
     "scripts": {
         "prebuild": "eslint src test",
